@@ -74,14 +74,15 @@ def get_profiles(twitter, names, cf_t):
         """
     # file name for daily tracking
     dt = datetime.datetime.now()
-    fn = cf_t['data_path']+'/profiles/'+dt.strftime('%Y-%m-%d-user-profiles.json')
+    fn = cf_t['data_path']+'/'+dt.strftime('%Y-%m-%d-user-profiles.json')
     with open(fn, 'w') as f:
-        for name in names:
+        f_names = open(names, 'r')
+        for name in f_names:
             print("Searching twitter for User profile: ", name)
             try:
                 # create a subquery, looking up information about these users
                 # twitter API docs: https://dev.twitter.com/docs/api/1/get/users/lookup
-                profiles = twitter.users.lookup(screen_name = 'jasonkuruzovich,analyticsdojo')
+                profiles = twitter.users.lookup(screen_name = name)
                 sub_start_time = time.time()
                 for profile in profiles:
                     print("user", profile['statuses_count'])
@@ -93,13 +94,13 @@ def get_profiles(twitter, names, cf_t):
                     time.sleep(cf_t['sleep_interval'] + 1 - sub_elapsed_time)
             except TwitterHTTPError:
                 traceback.print_exc()
-                time.sleep(cf_t['sleep_interval'])
+                # time.sleep(cf_t['sleep_interval'])
                 continue
     f.close()
     return fn
 
 def timeline_path(screen_name, cf_t):
-    return cf_t['data_path']+"/timeline/"+screen_name+".json"
+    return cf_t['data_path'].replace("profiles", "tweets/")+screen_name+".json"
 
 # check the max tweet id in last round
 def timeline_file_stats(screen_name, cf_t):

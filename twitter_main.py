@@ -8,6 +8,29 @@ import math
 import csv
 
 
+# Helper function to print the contents of a dictionary
+def print_dict(cf_dict):
+	for keys,values in cf_dict.items():
+		print(keys)
+		print(values)
+		print("----")
+
+def text_to_csv(file):
+	csv_file = file.replace(".txt", ".csv") # Create the name of the csv file
+
+	# Create csv file and write header
+	csv_file = open(csv_file, 'w')
+	writer = csv.writer(csv_file) # create csv object to write to the csv
+	header = ["index", "screen_name"]
+	writer.writerow(header)
+
+	txt_file = open(file, 'r')
+
+	count = 1
+	for line in txt_file:
+		row = [ str(count), line.strip('\n') ]  # Create python dict so csv correctly writes
+		writer.writerow(row)
+
 
 
 if __name__ == "__main__":
@@ -18,31 +41,27 @@ if __name__ == "__main__":
 		cf_dict=ruamel.yaml.round_trip_load(yaml_t, preserve_quotes=True)
 
 	cf_dict = tu.twitter_init(cf_dict)
-	
-	print(ruamel.yaml.dump(cf_dict, sys.stdout, Dumper=ruamel.yaml.RoundTripDumper))
-	df = pd.DataFrame.from_csv(cf_dict['names_path'])
-	df = df.drop_duplicates(subset='screen_name', keep="first")
-	# '.'.join(list(df['screen_name']))
-	# df[0:49]
+
+	# print_dict(cf_dict)
+
+	text_to_csv(cf_dict['names_path'])
+
+	# print(ruamel.yaml.dump(cf_dict, sys.stdout, Dumper=ruamel.yaml.RoundTripDumper))
+	df = pd.read_csv(cf_dict['names_path'].replace(".txt", ".csv"))  # Create a pandas datafrom from screen_names.csv
+	df = df.drop_duplicates(subset='screen_name', keep="first")  # Remove any duplicate users
+	'.'.join(list(df['screen_name']))
+	df[0:49]
 
 
-	# s=0
-	# for i in range(math.ceil(len(df)/50)):
-	# 	val=df[s:(s+49)]
-	# 	print(val)
-	# 	s+=49
+	twitter = tu.create_twitter_auth(cf_dict)
 
+	profiles_fn = tu.get_profiles(twitter, cf_dict['names_path'], cf_dict)
 
-	# for loop in (math.ceil(len(df)/50)):
-	# 	print(loop)
+	tu.profiles_to_timelines(twitter, profiles_fn, cf_dict)
 
-	# twitter = tu.create_twitter_auth(cf_dict)
-
-	# profiles_fn = tu.get_profiles(twitter, df['screen_name'], cf_t)
-
-
-	# print(cf_t['names_path'])
-	# with open(cf_t['names_path'], 'r') as f:
+	# 
+	# print(cf_dict['names_path'])
+	# with open(cf_dict['names_path'], 'r') as f:
 	#     reader = csv.reader(f)
 	#     names = pd.DataFrame(reader)
 	# print(type(names))
