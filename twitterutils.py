@@ -16,6 +16,7 @@ def twitter_init(cf_t):
 
     Returns: A configuration dictionary.
     """
+    cf_t['path'] = os.getcwd()
     cf_t['names_path'] = cf_t['path'] + cf_t['config'] + "/" + cf_t['file']
     cf_t['data_path'] = cf_t['path'] + cf_t['data']
     return cf_t
