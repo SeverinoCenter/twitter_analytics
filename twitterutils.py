@@ -78,7 +78,7 @@ def get_profiles(twitter, names, cf_t):
     with open(fn, 'w') as f:
         f_names = open(names, 'r')
         for name in f_names:
-            print("Searching twitter for User profile: ", name)
+            print("Searching twitter for User profile: ", name.strip('\n'))
             try:
                 # create a subquery, looking up information about these users
                 # twitter API docs: https://dev.twitter.com/docs/api/1/get/users/lookup
@@ -126,8 +126,8 @@ def profiles_to_timelines(twitter, profiles_fn, cf_t):
         for line in f:
             profile = json.loads(line)
             stats=timeline_file_stats(profile['screen_name'],cf_t)
-            print('user:', profile['screen_name'],'Total tweets:',   \
-            profile['statuses_count'], 'File tweets:',stats['total_tweets_file'] )
+            print('user:', profile['screen_name'],'\n    Total tweets:',   \
+            profile['statuses_count'], '\n     File tweets:',stats['total_tweets_file'] )
             if stats['total_tweets_file']<profile['statuses_count']:
                 tweets_remaining= profile['statuses_count']-stats['total_tweets_file']
                 print("Go get some more")

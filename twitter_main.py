@@ -15,6 +15,8 @@ def print_dict(cf_dict):
 		print(values)
 		print("----")
 
+# Converts usernames entered into a txt file into the proper format
+# csv file
 def text_to_csv(file):
 	csv_file = file.replace(".txt", ".csv") # Create the name of the csv file
 
@@ -50,19 +52,14 @@ if __name__ == "__main__":
 	df = pd.read_csv(cf_dict['names_path'].replace(".txt", ".csv"))  # Create a pandas datafrom from screen_names.csv
 	df = df.drop_duplicates(subset='screen_name', keep="first")  # Remove any duplicate users
 	'.'.join(list(df['screen_name']))
-	df[0:49]
 
 
+	# Authorize twitter
 	twitter = tu.create_twitter_auth(cf_dict)
 
+	# Find the profiles of all the names in screen_names.txt and create a YYYY-MM-DD-user_profiles.json file
+	# containing the profiles
 	profiles_fn = tu.get_profiles(twitter, cf_dict['names_path'], cf_dict)
 
+	# Create .json file for each profile
 	tu.profiles_to_timelines(twitter, profiles_fn, cf_dict)
-
-	# 
-	# print(cf_dict['names_path'])
-	# with open(cf_dict['names_path'], 'r') as f:
-	#     reader = csv.reader(f)
-	#     names = pd.DataFrame(reader)
-	# print(type(names))
-	# print(names)
