@@ -7,6 +7,14 @@ import pandas as pd
 import math
 import csv
 
+### TODO ###
+#   1. Clean code and function everything to encorporate into Airflow
+#   2. Create data collection status for each profile
+#     a. Look at issue #6 on gitlab
+# ? 3. Get jupyterhub running locally to test everything 
+#     a. Convert file to jupyter notebook
+#   4. Profile pulling logic (don't pull if already have)
+
 
 # Helper function to print the contents of a dictionary
 def print_dict(cf_dict):
@@ -31,6 +39,7 @@ def text_to_csv(file):
 	count = 1
 	for line in txt_file:
 		row = [ str(count), line.strip('\n') ]  # Create python dict so csv correctly writes
+		# count++;
 		writer.writerow(row)
 
 

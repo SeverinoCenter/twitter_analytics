@@ -69,7 +69,7 @@ def create_twitter_auth(cf_t):
 def get_profiles(twitter, names, cf_t):
     """Function write profiles to a file with the form *data-user-profiles.json*
        Args: names is a list of names
-             cf_t is a list of twitter config
+            cf_t is a list of twitter config
        Returns: Nothing
         """
     # file name for daily tracking
