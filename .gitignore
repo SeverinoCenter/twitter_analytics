@@ -41,3 +41,5 @@ Thumbs.db
 ##################
 
 config/config.yaml
+tweets/
+profiles/
