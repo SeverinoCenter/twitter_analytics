@@ -39,7 +39,7 @@ def text_to_csv(file):
 	count = 1
 	for line in txt_file:
 		row = [ str(count), line.strip('\n') ]  # Create python dict so csv correctly writes
-		# count++;
+		count += 1;
 		writer.writerow(row)
 
 # Initialize the configuration file and store it in dictionary
@@ -53,21 +53,24 @@ def config_init(file):
 
 	return tu.twitter_init(cf_dict)
 
+# Create a string containing usernames to pull multiple users at a time
+def names_to_string(config):
+	df = pd.read_csv(config['names_path'].replace(".txt", ".csv"))  # Create a pandas datafrom from screen_names.csv
+	df = df.drop_duplicates(subset='screen_name', keep="first")  # Remove any duplicate users
+	return '.'.join(list(df['screen_name']))
 
 
 if __name__ == "__main__":
 
 
+	# Create config dictionary
 	cf_dict = config_init("config/config.yaml");
 
-	# print_dict(cf_dict)
-
+	# Convert screen_names.txt to screen_names.csv
 	text_to_csv(cf_dict['names_path'])
 
-	# print(ruamel.yaml.dump(cf_dict, sys.stdout, Dumper=ruamel.yaml.RoundTripDumper))
-	df = pd.read_csv(cf_dict['names_path'].replace(".txt", ".csv"))  # Create a pandas datafrom from screen_names.csv
-	df = df.drop_duplicates(subset='screen_name', keep="first")  # Remove any duplicate users
-	'.'.join(list(df['screen_name']))
+	# Convert list of names into one string to pull multiple users in one request
+	names = names_to_string(cf_dict);
 
 
 	# Authorize twitter

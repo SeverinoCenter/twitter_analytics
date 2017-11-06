@@ -94,7 +94,7 @@ def get_profiles(twitter, names, cf_t):
                     time.sleep(cf_t['sleep_interval'] + 1 - sub_elapsed_time)
             except TwitterHTTPError:
                 traceback.print_exc()
-                # time.sleep(cf_t['sleep_interval'])
+                time.sleep(cf_t['sleep_interval'])
                 continue
     f.close()
     return fn
