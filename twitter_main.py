@@ -57,7 +57,7 @@ def config_init(file):
 def names_to_string(config):
 	df = pd.read_csv(config['names_path'].replace(".txt", ".csv"))  # Create a pandas datafrom from screen_names.csv
 	df = df.drop_duplicates(subset='screen_name', keep="first")  # Remove any duplicate users
-	return '.'.join(list(df['screen_name']))
+	return ','.join(list(df['screen_name']))
 
 
 if __name__ == "__main__":
@@ -72,13 +72,14 @@ if __name__ == "__main__":
 	# Convert list of names into one string to pull multiple users in one request
 	names = names_to_string(cf_dict);
 
+	print(names);
 
 	# Authorize twitter
 	twitter = tu.create_twitter_auth(cf_dict)
 
 	# Find the profiles of all the names in screen_names.txt and create a YYYY-MM-DD-user_profiles.json file
 	# containing the profiles
-	profiles_fn = tu.get_profiles(twitter, cf_dict['names_path'], cf_dict)
+	profiles_fn = tu.get_profiles(twitter, cf_dict['names_path'], cf_dict, names)
 
 	# Create .json file for each profile
 	tu.profiles_to_timelines(twitter, profiles_fn, cf_dict)

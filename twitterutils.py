@@ -66,36 +66,61 @@ def create_twitter_auth(cf_t):
 
     return twitter
 
-def get_profiles(twitter, names, cf_t):
+def get_profiles(twitter, names, cf_t, string):
     """Function write profiles to a file with the form *data-user-profiles.json*
        Args: names is a list of names
             cf_t is a list of twitter config
        Returns: Nothing
         """
     # file name for daily tracking
+    # dt = datetime.datetime.now()
+    # fn = cf_t['data_path']+'/'+dt.strftime('%Y-%m-%d-user-profiles.json')
+    # with open(fn, 'w') as f:
+    #     f_names = open(names, 'r')
+    #     for name in f_names:
+    #         print("Searching twitter for User profile: ", name.strip('\n'))
+    #         try:
+    #             # create a subquery, looking up information about these users
+    #             # twitter API docs: https://dev.twitter.com/docs/api/1/get/users/lookup
+    #             profiles = twitter.users.lookup(screen_name = string)
+    #             sub_start_time = time.time()
+    #             for profile in profiles:
+    #                 print("user", profile['statuses_count'])
+    #                 # now save user info
+    #                 f.write(json.dumps(profile))
+    #                 f.write("\n")
+    #             sub_elapsed_time = time.time() - sub_start_time;
+    #             if sub_elapsed_time < cf_t['sleep_interval']:
+    #                 time.sleep(cf_t['sleep_interval'] + 1 - sub_elapsed_time)
+    #         except TwitterHTTPError:
+    #             traceback.print_exc()
+    #             time.sleep(cf_t['sleep_interval'])
+    #             continue
+    # f.close()
+    # return fn
+
     dt = datetime.datetime.now()
-    fn = cf_t['data_path']+'/'+dt.strftime('%Y-%m-%d-user-profiles.json')
+    fn = cf_t['data_path'] +'/'+dt.strftime('%Y-%m-%d-user-profiles.json')
     with open(fn, 'w') as f:
-        f_names = open(names, 'r')
-        for name in f_names:
-            print("Searching twitter for User profile: ", name.strip('\n'))
-            try:
-                # create a subquery, looking up information about these users
-                # twitter API docs: https://dev.twitter.com/docs/api/1/get/users/lookup
-                profiles = twitter.users.lookup(screen_name = name)
-                sub_start_time = time.time()
-                for profile in profiles:
-                    print("user", profile['statuses_count'])
-                    # now save user info
-                    f.write(json.dumps(profile))
-                    f.write("\n")
-                sub_elapsed_time = time.time() - sub_start_time;
-                if sub_elapsed_time < cf_t['sleep_interval']:
-                    time.sleep(cf_t['sleep_interval'] + 1 - sub_elapsed_time)
-            except TwitterHTTPError:
-                traceback.print_exc()
-                time.sleep(cf_t['sleep_interval'])
-                continue
+        try:
+            profiles = twitter.users.lookup(screen_name = string)
+            sub_start_time = time.time()
+
+            for profile in profiles:
+                print("Searching twitter for User profile: ", profile['name'])
+                print("User tweets: ", profile['statuses_count'])
+
+                f.write(json.dumps(profile))
+                f.write("\n")
+
+            sub_elapsed_time = time.time() - sub_start_time;
+
+            if(sub_elapsed_time < cf_t['sleep_interval']):
+                time.sleep(cf_t['sleep_interval'] + 1 - sub_elapsed_time)
+        except TwitterHTTPError:
+            traceback.print_exc()
+            time.sleep(cf_t['sleep_interval'])
+
     f.close()
     return fn
 
