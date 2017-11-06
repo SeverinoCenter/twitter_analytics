@@ -42,16 +42,23 @@ def text_to_csv(file):
 		# count++;
 		writer.writerow(row)
 
-
-
-if __name__ == "__main__":
-
+# Initialize the configuration file and store it in dictionary
+# 
+# PARAMS: file: Path to the config.yaml
+def config_init(file):
 	# Configure config files
 	twitter_config = "config/config.yaml"
 	with open(twitter_config, 'r') as yaml_t:
 		cf_dict=ruamel.yaml.round_trip_load(yaml_t, preserve_quotes=True)
 
-	cf_dict = tu.twitter_init(cf_dict)
+	return tu.twitter_init(cf_dict)
+
+
+
+if __name__ == "__main__":
+
+
+	cf_dict = config_init("config/config.yaml");
 
 	# print_dict(cf_dict)
 
