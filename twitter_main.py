@@ -106,10 +106,15 @@ def generate_user_stats(screenname, config):
 
 	return user_stats
 
-# Creates a csv file containing all the users on file
 
 # Converts usernames entered into a txt file into the proper format
 # csv file
+#
+# Params
+#		file: String containing path to the screen_names.txt file
+# 
+# RETURNS
+#		NA
 def text_to_csv(file):
 	csv_file = file.replace(".txt", ".csv") # Create the name of the csv file
 
@@ -129,7 +134,11 @@ def text_to_csv(file):
 
 # Initialize the configuration file and store it in dictionary
 # 
-# PARAMS: file: Path to the config.yaml
+# PARAMS
+#		file: Path to the config.yaml
+#
+# RETURNS
+#		Dictionary containing config info
 def config_init(file):
 	# Configure config files
 	twitter_config = "config/config.yaml"
@@ -138,7 +147,13 @@ def config_init(file):
 
 	return tu.twitter_init(cf_dict)
 
-# Create a string containing usernames to pull multiple users at a time
+# Create a comma seperated string containing usernames to pull multiple users at a time
+#
+# PARAMS
+#		config: Dictionary containing config info
+#
+# RETURNS
+#		Single string containing all the names in screen_names.csv; comma seperated
 def names_to_string(config):
 	df = pd.read_csv(config['names_path'].replace(".txt", ".csv"))  # Create a pandas datafrom from screen_names.csv
 	df = df.drop_duplicates(subset='screen_name', keep="first")  # Remove any duplicate users
@@ -150,21 +165,18 @@ if __name__ == "__main__":
 	# Create config dictionary
 	cf_dict = config_init("config/config.yaml");
 
-	print( generate_user_stats("JasonKuruzovich", cf_dict) )
-	# print(cf_dict);
-
 	# Convert screen_names.txt to screen_names.csv
-	# text_to_csv(cf_dict['names_path'])
+	text_to_csv(cf_dict['names_path'])
 
 	# Convert list of names into one string to pull multiple users in one request
 	names = names_to_string(cf_dict);
 
 	# Authorize twitter
-	# twitter = tu.create_twitter_auth(cf_dict)
+	twitter = tu.create_twitter_auth(cf_dict)
 
 	# Find the profiles of all the names in screen_names.txt and create a YYYY-MM-DD-user_profiles.json file
 	# containing the profiles
-	# profiles_fn = tu.get_profiles(twitter, cf_dict['names_path'], cf_dict, names)
+	profiles_fn = tu.get_profiles(twitter, cf_dict['names_path'], cf_dict, names)
 
 	# Create .json file for each profile
-	# tu.profiles_to_timelines(twitter, profiles_fn, cf_dict)
+	tu.profiles_to_timelines(twitter, profiles_fn, cf_dict)
