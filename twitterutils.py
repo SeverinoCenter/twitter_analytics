@@ -71,12 +71,14 @@ def get_profiles(twitter, names, cf_t, string):
        Args: names is a list of names
             cf_t is a list of twitter config
        Returns: .json file containing user info
-        """
+    """
 
     # file name for daily tracking
     dt = datetime.datetime.now()
     fn = cf_t['data_path'] +'/'+dt.strftime('%Y-%m-%d-user-profiles.json')
     with open(fn, 'w') as f:
+        # If the twitter-api can't find any of the usernames listed in string, it will throw a
+        # TwitterHTTPError
         try:
             # Create a subquery, looking up information about users listed in 'string'
             # twitter api-docs: https://developer.twitter.com/en/docs/accounts-and-users/follow-search-get-users/api-reference/get-users-lookup
@@ -91,11 +93,15 @@ def get_profiles(twitter, names, cf_t, string):
                 f.write(json.dumps(profile))
                 f.write("\n")
 
+            # Get time that the query's took
             sub_elapsed_time = time.time() - sub_start_time;
 
+            # If the total time for the query was less than the sleep interval,
+            # wait the remaining amount of time
             if(sub_elapsed_time < cf_t['sleep_interval']):
                 time.sleep(cf_t['sleep_interval'] + 1 - sub_elapsed_time)
         except TwitterHTTPError:
+            print("---------- No Users Found ----------")
             traceback.print_exc()
             time.sleep(cf_t['sleep_interval'])
 

@@ -6,22 +6,107 @@ import ruamel.yaml
 import pandas as pd
 import math
 import csv
+import json
+import datetime
+from os import listdir
 
-### TODO ###
-#   1. Clean code and function everything to encorporate into Airflow
-#   2. Create data collection status for each profile
-#     a. Look at issue #6 on gitlab
-# ? 3. Get jupyterhub running locally to test everything 
-#     a. Convert file to jupyter notebook
-#   4. Profile pulling logic (don't pull if already have)
+############################### TODO ######################################
+##     1. Clean code and function everything to encorporate into Airflow
+##     2. Create data collection status for each profile
+##       a. Look at issue #6 on gitlab
+##
+##  	username | date of last pull | num of tweets in last pull | num of tweets in file | num of tweets that can't access | max tweetid | min tweetid
+##     usrID | lpDT | lpTWC | lpTWF | ntwCA | mxTWI | mnTWI
+##
+##   ? 3. Get jupyterhub running locally to test everything 
+##       a. Convert file to jupyter notebook
+##     4. Profile pulling logic (don't pull if already have)
+##########################################################################
 
 
-# Helper function to print the contents of a dictionary
-def print_dict(cf_dict):
-	for keys,values in cf_dict.items():
-		print(keys)
-		print(values)
-		print("----")
+# Helper to compare two date strings in format of 'YYYY-MM-DD'
+# Converts the dates into ints with the format YYYYMMDD
+# This allows easy comparing by using integer logic
+#
+# PARAMS
+#    	date1: First date to be compared
+# 		date2: Second date to be compared
+#
+# RETURNS
+#		True: date1 > date2 (date1 is more recent than date2)
+#		False: date1 < date2 (date2 is more recent than date1)
+def compare_dates(date1, date2):
+	# Convert date1 to int
+	date1 = date1.replace('-', '')
+	date1_int = int(date1)
+
+	# Convert date2 to int
+	date2 = date2.replace('-', '')
+	date2_int = int(date2)
+
+	return date1_int > date2_int
+
+
+# Get all the necessary statistics for a single user
+#
+# PARAMS
+#		screenname: String containing the screen_name of the user in question
+# 		config: Dictionary containing all the configuration info
+#
+# RETURNS
+#		user_stats: Dictionary containing the necessary user stats
+def generate_user_stats(screenname, config):
+	# Generate the paths for the specific user
+	users_path = config["data_path"]
+	tweets_path = config['data_path'].replace("profiles", "tweets/")+screenname+".json"
+
+
+
+	# Initialize return dict with initial values
+	user_stats = { 'screen_name': screenname,
+				   'userID': -1,
+	 			   'lpDate': "0000-00-00",            # Date of last pull
+	 			   'lpTweetCount': -1,		# Number of tweets in last pull
+	 			   'lpTweetFile': -1,		# number of tweets on file
+	 			   'numTweetsNA': -1,		# Number of tweets that can't access
+	 			   'maxTweetID': -1,
+	 			   'minTweetID': -1 }
+
+	# Get maxTweetID, minTweetID, lpTweetFile
+	partial_stats = tu.timeline_file_stats(screenname, config)
+	user_stats['lpTweetFile'] = partial_stats['total_tweets_file']
+	user_stats['maxTweetID'] = partial_stats['tweet_max_id']
+	user_stats['minTweetID'] = partial_stats['tweet_min_id']
+
+	# Get information from YYYY-MM-DD-user-profiles.json
+	for date_file in listdir(users_path):
+			
+		# Safety check incase there are non user files in directory
+		if(date_file.endswith(".json")):
+
+			lpDT = date_file[0:10] # Get the date from the name of the file
+			date_file = users_path + "/" + date_file
+			with open(date_file, 'r') as file:
+
+				# Traverse over each user profile information
+				for line in file:
+					# Get twitter json dump
+					user_info = json.loads(line)
+
+					# Make sure the correct user is being used
+					if(user_info['screen_name'] != screenname):
+						continue
+					else:
+						user_stats['userID'] = user_info['id']
+						# Makes sure to keep the latest date instead of most recently accessed
+						if( compare_dates(lpDT, user_stats['lpDate']) ):
+							user_stats['lpDate'] = lpDT
+						user_stats['lpTweetCount'] = user_info['statuses_count']
+						user_stats['numTweetsNA'] = user_stats['lpTweetCount'] - user_stats['lpTweetFile']
+
+	return user_stats
+
+# Creates a csv file containing all the users on file
 
 # Converts usernames entered into a txt file into the proper format
 # csv file
@@ -62,24 +147,24 @@ def names_to_string(config):
 
 if __name__ == "__main__":
 
-
 	# Create config dictionary
 	cf_dict = config_init("config/config.yaml");
 
+	print( generate_user_stats("JasonKuruzovich", cf_dict) )
+	# print(cf_dict);
+
 	# Convert screen_names.txt to screen_names.csv
-	text_to_csv(cf_dict['names_path'])
+	# text_to_csv(cf_dict['names_path'])
 
 	# Convert list of names into one string to pull multiple users in one request
 	names = names_to_string(cf_dict);
 
-	print(names);
-
 	# Authorize twitter
-	twitter = tu.create_twitter_auth(cf_dict)
+	# twitter = tu.create_twitter_auth(cf_dict)
 
 	# Find the profiles of all the names in screen_names.txt and create a YYYY-MM-DD-user_profiles.json file
 	# containing the profiles
-	profiles_fn = tu.get_profiles(twitter, cf_dict['names_path'], cf_dict, names)
+	# profiles_fn = tu.get_profiles(twitter, cf_dict['names_path'], cf_dict, names)
 
 	# Create .json file for each profile
-	tu.profiles_to_timelines(twitter, profiles_fn, cf_dict)
+	# tu.profiles_to_timelines(twitter, profiles_fn, cf_dict)
