@@ -8,7 +8,7 @@ import math
 import csv
 import json
 import datetime
-from os import listdir
+from os import listdir, path
 
 ############################### TODO ######################################
 ##     1. Clean code and function everything to encorporate into Airflow
@@ -55,11 +55,9 @@ def compare_dates(date1, date2):
 #
 # RETURNS
 #		user_stats: Dictionary containing the necessary user stats
-def generate_user_stats(screenname, config):
+def gather_user_stats(screenname, config):
 	# Generate the paths for the specific user
 	users_path = config["data_path"]
-	tweets_path = config['data_path'].replace("profiles", "tweets/")+screenname+".json"
-
 
 
 	# Initialize return dict with initial values
@@ -78,39 +76,76 @@ def generate_user_stats(screenname, config):
 	user_stats['maxTweetID'] = partial_stats['tweet_max_id']
 	user_stats['minTweetID'] = partial_stats['tweet_min_id']
 
-	# Get information from YYYY-MM-DD-user-profiles.json
+	# Traverse over YYYY-MM-DD-user-profiles.json files
 	for date_file in listdir(users_path):
 			
 		# Safety check incase there are non user files in directory
-		if(date_file.endswith(".json")):
+		if(date_file.endswith(".json") == False):
+			continue
 
-			lpDT = date_file[0:10] # Get the date from the name of the file
-			date_file = users_path + "/" + date_file
-			with open(date_file, 'r') as file:
+		lpDT = date_file[0:10] # Get the date from the name of the file
+		date_file = users_path + "/" + date_file
+		with open(date_file, 'r') as file:
 
-				# Traverse over each user profile information
-				for line in file:
-					# Get twitter json dump
-					user_info = json.loads(line)
+			# Traverse over each user profile information
+			for line in file:
+				# Get twitter json dump
+				user_info = json.loads(line)
 
-					# Make sure the correct user is being used
-					if(user_info['screen_name'] != screenname):
-						continue
-					else:
-						user_stats['userID'] = user_info['id']
-						# Makes sure to keep the latest date instead of most recently accessed
-						if( compare_dates(lpDT, user_stats['lpDate']) ):
-							user_stats['lpDate'] = lpDT
-						user_stats['lpTweetCount'] = user_info['statuses_count']
-						user_stats['numTweetsNA'] = user_stats['lpTweetCount'] - user_stats['lpTweetFile']
+				# Make sure the correct user is being used
+				if(user_info['screen_name'] != screenname):
+					continue
+				else:
+					user_stats['userID'] = user_info['id']
+					# Makes sure to keep the latest date instead of most recently accessed
+					if( compare_dates(lpDT, user_stats['lpDate']) ):
+						user_stats['lpDate'] = lpDT
+					user_stats['lpTweetCount'] = user_info['statuses_count']
+					user_stats['numTweetsNA'] = user_stats['lpTweetCount'] - user_stats['lpTweetFile']
 
 	return user_stats
+
+# Create a csv file containing the stats for every user in the /tweets directory
+#
+# PARAMS
+#		config: Dictionary containing the config info
+#
+# RETURNS
+#		NA
+def create_user_stats(config):
+	tweets_path = config['data_path'].replace("profiles", "tweets/")
+
+	# Create a list of users on file
+	users = []
+	for file in listdir(tweets_path):
+		if(file.endswith(".json") == False):
+			continue
+		users.append(path.splitext(file)[0])
+
+	numUsers = len(users)
+
+	# Dictionary containing user info
+	data = {}
+
+	x = 0;
+	# Add all users to dictionary with their stats
+	
+
+	while(x<numUsers):
+		print(users[x])
+		u_stats = gather_user_stats(users[x], config)
+		data[users[x]] = []
+		data[ users[x] ].append( u_stats )
+		x += 1
+
+	with open('user_stats.json', 'w') as outfile:
+		json.dump(data, outfile, indent=4, sort_keys=True)
 
 
 # Converts usernames entered into a txt file into the proper format
 # csv file
 #
-# Params
+# PARAMS
 #		file: String containing path to the screen_names.txt file
 # 
 # RETURNS
@@ -165,18 +200,20 @@ if __name__ == "__main__":
 	# Create config dictionary
 	cf_dict = config_init("config/config.yaml");
 
+
+	create_user_stats(cf_dict)
 	# Convert screen_names.txt to screen_names.csv
-	text_to_csv(cf_dict['names_path'])
+	# text_to_csv(cf_dict['names_path'])
 
-	# Convert list of names into one string to pull multiple users in one request
-	names = names_to_string(cf_dict);
+	# # Convert list of names into one string to pull multiple users in one request
+	# names = names_to_string(cf_dict);
 
-	# Authorize twitter
-	twitter = tu.create_twitter_auth(cf_dict)
+	# # Authorize twitter
+	# twitter = tu.create_twitter_auth(cf_dict)
 
-	# Find the profiles of all the names in screen_names.txt and create a YYYY-MM-DD-user_profiles.json file
-	# containing the profiles
-	profiles_fn = tu.get_profiles(twitter, cf_dict['names_path'], cf_dict, names)
+	# # Find the profiles of all the names in screen_names.txt and create a YYYY-MM-DD-user_profiles.json file
+	# # containing the profiles
+	# profiles_fn = tu.get_profiles(twitter, cf_dict['names_path'], cf_dict, names)
 
-	# Create .json file for each profile
-	tu.profiles_to_timelines(twitter, profiles_fn, cf_dict)
+	# # Create .json file for each profile
+	# tu.profiles_to_timelines(twitter, profiles_fn, cf_dict)
