@@ -10,7 +10,7 @@ import json
 import datetime
 from os import listdir, path
 
-
+##########  config_init  ##############
 # Initialize the configuration file and store it in dictionary
 #
 # PARAMS
@@ -27,10 +27,69 @@ def config_init(file):
 	return tu.twitter_init(cf_dict)
 
 
-def get_users_from_file(config):
+#########  get_all_users_from_file  #############
+# Read the users in screen_names.txt and store them in a 
+# dictionary splitting the users between existing and new users
+#
+# PARAMS
+#       config: Dictionary containing all the config info for project
+#
+# RETURNS
+#       all_users: dictionary containing existing users and new users
+def get_all_users_from_file(config):
+    users_file = open(config['path'] + config['config'] + '/' + config['file'], 'r')
+
+    all_users = { 'existing': [],
+                  'new': [] }
+
+    for line in users_file:
+        username = line.strip()
+
+        if(user_exists(config, username)):
+            all_users['existing'].append(username)
+        else:
+            all_users['new'].append(username)
+
+    return all_users
 
 
-    return
+########  user_exists  ##########
+# Simple helper to test if a specific user already exists in the database
+#
+# PARAMS
+#       name: String containing the user in question
+#
+# RETURNS
+#       True: Users exists in database
+#       False: User doesnt exist
+def user_exists(config, name):
+    users_path = config['path'] + '/tweets/';
+
+    # Traverse over tweets directory
+    for file in listdir(users_path):
+        # Make sure the current file is a users timeline
+        if(file.endswith(".json")):
+            current_name = path.splitext(file)[0].lower()
+            if(current_name == name): return True
+
+    # User not found
+    return False
+
+#######  check_for_new_tweets ############
+# Checks to see if there are any new tweets by a specific user
+#
+# PARAMS
+#       cf_dict: Main configuration dict
+#       user: username of user in question
+#
+# RETURNS
+#       num_tweets: Number of new tweets ( >= 0)
+def check_for_new_tweets(config, user):
+    num_tweets = 0;
+
+
+
+    return num_tweets
 
 
 
@@ -39,19 +98,16 @@ if __name__ == '__main__':
     # Create Initial config dictionary
     cf_dict = config_init("config/config.yaml");
 
-    print(cf_dict)
+    # print(cf_dict)
 
     # Get usernames from text file
-    all_users = get_users_from_file(cf_dict);
-
-
-    # Test if each user already exists, split into two lists
-    # containing existing users and new users
-    #
-    # A user will exist if there is a [username].json in the /tweets/ directory
-
+    all_users = get_all_users_from_file(cf_dict);
 
     #### EXISTING USER PROCESS ####
+
+    for user in all_users['existing']:
+        
+        num_new = check_for_new_tweets(cf_dict, user)
 
     # FOREACH USER
 
