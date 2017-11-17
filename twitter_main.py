@@ -18,7 +18,7 @@ from os import listdir, path
 ##  	username | date of last pull | num of tweets in last pull | num of tweets in file | num of tweets that can't access | max tweetid | min tweetid
 ##     usrID | lpDT | lpTWC | lpTWF | ntwCA | mxTWI | mnTWI
 ##
-##   ? 3. Get jupyterhub running locally to test everything 
+##   ? 3. Get jupyterhub running locally to test everything
 ##       a. Convert file to jupyter notebook
 ##     4. Profile pulling logic (don't pull if already have)
 ##########################################################################
@@ -78,7 +78,7 @@ def gather_user_stats(screenname, config):
 
 	# Traverse over YYYY-MM-DD-user-profiles.json files
 	for date_file in listdir(users_path):
-			
+
 		# Safety check incase there are non user files in directory
 		if(date_file.endswith(".json") == False):
 			continue
@@ -113,23 +113,32 @@ def gather_user_stats(screenname, config):
 # RETURNS
 #		NA
 def create_user_stats(config):
-	tweets_path = config['data_path'].replace("profiles", "tweets/")
+	# tweets_path = config['data_path'].replace("profiles", "tweets/")
+	#
+	# # Create a list of users on file
+	# users = []
+	# for file in listdir(tweets_path):
+	# 	if(file.endswith(".json") == False):
+	# 		continue
+	# 	users.append(path.splitext(file)[0])
+
+	users_file = open(config['names_path'], 'r')
 
 	# Create a list of users on file
 	users = []
-	for file in listdir(tweets_path):
-		if(file.endswith(".json") == False):
-			continue
-		users.append(path.splitext(file)[0])
+
+	for line in users_file:
+		users.append(line.strip("\n"))
 
 	numUsers = len(users)
+
+
 
 	# Dictionary containing user info
 	data = {}
 
 	x = 0;
 	# Add all users to dictionary with their stats
-	
 
 	while(x<numUsers):
 		print(users[x])
@@ -147,7 +156,7 @@ def create_user_stats(config):
 #
 # PARAMS
 #		file: String containing path to the screen_names.txt file
-# 
+#
 # RETURNS
 #		NA
 def text_to_csv(file):
@@ -168,7 +177,7 @@ def text_to_csv(file):
 		writer.writerow(row)
 
 # Initialize the configuration file and store it in dictionary
-# 
+#
 # PARAMS
 #		file: Path to the config.yaml
 #
@@ -203,17 +212,17 @@ if __name__ == "__main__":
 
 	create_user_stats(cf_dict)
 	# Convert screen_names.txt to screen_names.csv
-	# text_to_csv(cf_dict['names_path'])
+	text_to_csv(cf_dict['names_path'])
 
 	# # Convert list of names into one string to pull multiple users in one request
-	# names = names_to_string(cf_dict);
+	names = names_to_string(cf_dict);
 
 	# # Authorize twitter
-	# twitter = tu.create_twitter_auth(cf_dict)
+	twitter = tu.create_twitter_auth(cf_dict)
 
 	# # Find the profiles of all the names in screen_names.txt and create a YYYY-MM-DD-user_profiles.json file
 	# # containing the profiles
-	# profiles_fn = tu.get_profiles(twitter, cf_dict['names_path'], cf_dict, names)
+	profiles_fn = tu.get_profiles(twitter, cf_dict['names_path'], cf_dict, names)
 
 	# # Create .json file for each profile
-	# tu.profiles_to_timelines(twitter, profiles_fn, cf_dict)
+	tu.profiles_to_timelines(twitter, profiles_fn, cf_dict)
