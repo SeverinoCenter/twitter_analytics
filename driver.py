@@ -14,21 +14,21 @@ from os import listdir, path
 # Initialize the configuration file and store it in dictionary
 #
 # PARAMS
-#		file: Path to the config.yaml
+#        file: Path to the config.yaml
 #
 # RETURNS
-#		Dictionary containing config info
+#        Dictionary containing config info
 def config_init(file):
-	# Configure config files
-	twitter_config = "config/config.yaml"
-	with open(twitter_config, 'r') as yaml_t:
-		cf_dict=ruamel.yaml.round_trip_load(yaml_t, preserve_quotes=True)
+    # Configure config files
+    twitter_config = "config/config.yaml"
+    with open(twitter_config, 'r') as yaml_t:
+        cf_dict=ruamel.yaml.round_trip_load(yaml_t, preserve_quotes=True)
 
-	return tu.twitter_init(cf_dict)
+    return tu.twitter_init(cf_dict)
 
 
 #########  get_all_users_from_file  #############
-# Read the users in screen_names.txt and store them in a 
+# Read the users in screen_names.txt and store them in a
 # dictionary splitting the users between existing and new users
 #
 # PARAMS
@@ -75,18 +75,39 @@ def user_exists(config, name):
     # User not found
     return False
 
+#######  get_user_stats #########
+# Get an individual users stats from the user_stats.json file
+#
+# PARAMS
+#        config: Main configuration dict
+#        user: screenname of user in question
+#
+# RETURNS
+#        stats: Dictionary containing the user stats
+def get_user_stats(config, user):
+    stats_file = open(config['path'] + '/user_stats.json', 'r')
+    user_info = json.load(stats_file)[user]
+    stats_file.close()
+    return user_info
+
+
 #######  check_for_new_tweets ############
 # Checks to see if there are any new tweets by a specific user
 #
 # PARAMS
-#       cf_dict: Main configuration dict
+#       config: Main configuration dict
 #       user: username of user in question
+#       twitter: Twitter api reader
 #
 # RETURNS
 #       num_tweets: Number of new tweets ( >= 0)
-def check_for_new_tweets(config, user):
+def check_for_new_tweets(config, user, twitter):
     num_tweets = 0;
+    user_info_new = twitter.users.lookup(user)
 
+    user_info_file = get_user_stats(config, user)
+
+    print(user_info_file['screen_name'])
 
 
     return num_tweets
@@ -96,18 +117,17 @@ def check_for_new_tweets(config, user):
 if __name__ == '__main__':
 
     # Create Initial config dictionary
-    cf_dict = config_init("config/config.yaml");
-
+    cf_dict = config_init("config/config.yaml")
+    twitter = tu.create_twitter_auth(cf_dict)
     # print(cf_dict)
 
     # Get usernames from text file
-    all_users = get_all_users_from_file(cf_dict);
+    all_users = get_all_users_from_file(cf_dict)
 
     #### EXISTING USER PROCESS ####
 
     for user in all_users['existing']:
-        
-        num_new = check_for_new_tweets(cf_dict, user)
+        num_new = check_for_new_tweets(cf_dict, user, twitter)
 
     # FOREACH USER
 
