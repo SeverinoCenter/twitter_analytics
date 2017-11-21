@@ -128,11 +128,14 @@ def create_user_stats(config):
 	users = []
 
 	for line in users_file:
-		users.append(line.strip("\n"))
+		user_info_new = twitter.users.lookup(screen_name = line)
+
+		# Get true twitter screen_name
+		user_true_name = user_info_new[0]['screen_name']
+
+		users.append(user_true_name.strip("\n"))
 
 	numUsers = len(users)
-
-
 
 	# Dictionary containing user info
 	data = {}
@@ -143,6 +146,7 @@ def create_user_stats(config):
 	while(x<numUsers):
 		print(users[x])
 		u_stats = gather_user_stats(users[x], config)
+		print(u_stats)
 		data[users[x]] = []
 		data[ users[x] ].append( u_stats )
 		x += 1
@@ -209,8 +213,6 @@ if __name__ == "__main__":
 	# Create config dictionary
 	cf_dict = config_init("config/config.yaml");
 
-
-	create_user_stats(cf_dict)
 	# Convert screen_names.txt to screen_names.csv
 	text_to_csv(cf_dict['names_path'])
 
@@ -222,7 +224,9 @@ if __name__ == "__main__":
 
 	# # Find the profiles of all the names in screen_names.txt and create a YYYY-MM-DD-user_profiles.json file
 	# # containing the profiles
-	profiles_fn = tu.get_profiles(twitter, cf_dict['names_path'], cf_dict, names)
+	# profiles_fn = tu.get_profiles(twitter, cf_dict['names_path'], cf_dict, names)
 
 	# # Create .json file for each profile
-	tu.profiles_to_timelines(twitter, profiles_fn, cf_dict)
+	# tu.profiles_to_timelines(twitter, profiles_fn, cf_dict)
+
+	create_user_stats(cf_dict)
