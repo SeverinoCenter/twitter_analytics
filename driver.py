@@ -70,7 +70,9 @@ def user_exists(config, name):
         # Make sure the current file is a users timeline
         if(file.endswith(".json")):
             current_name = path.splitext(file)[0].lower()
-            if(current_name == name): return True
+            # User found
+            if(current_name == name): 
+                return True
 
     # User not found
     return False
@@ -85,10 +87,10 @@ def user_exists(config, name):
 # RETURNS
 #        stats: Dictionary containing the user stats
 def get_user_stats(config, user):
-    stats_file = open(config['path'] + '/user_stats.json', 'r')
-    user_info = json.load(stats_file)[user]
-    stats_file.close()
-    return user_info
+    # Open the stats file and load the json data for the specific user
+    with open(config['path'] + '/user_stats.json', 'r') as stats_file:
+        all_info = json.load(stats_file)[user]
+    return all_info[0]
 
 
 #######  check_for_new_tweets ############
@@ -103,12 +105,13 @@ def get_user_stats(config, user):
 #       num_tweets: Number of new tweets ( >= 0)
 def check_for_new_tweets(config, user, twitter):
     num_tweets = 0;
-    user_info_new = twitter.users.lookup(user)
+    user_info_new = twitter.users.lookup(screen_name = user)
 
+    # Get true twitter screen_name
+    user_true_name = user_info_new[0]['screen_name']
     user_info_file = get_user_stats(config, user)
 
-    print(user_info_file['screen_name'])
-
+    num_tweets = user_info_new[0]['statuses_count'] - user_info_file['lpTweetFile']
 
     return num_tweets
 
@@ -127,39 +130,41 @@ if __name__ == '__main__':
     #### EXISTING USER PROCESS ####
 
     for user in all_users['existing']:
+        # Find number of new tweets
         num_new = check_for_new_tweets(cf_dict, user, twitter)
+        # print(user, num_new)
 
-    # FOREACH USER
+        # No new tweets since last info pull
+        if(num_new == 0):
+            print("No new tweets detected for", user)
+            print("Continuing to next user")
+            continue;
 
-    # Get latest tweet ID from Profile (latest_tweet_profile)
+        # New tweets since last pull
+        else:
+            print(num_new, "new tweets detected for", user)
 
-    # If  latest_tweet_file == latest_tweet_profile
-    # No new tweets, go to next userID
+            if(num_new < 200):
+                print("    Pulling newest tweets")
+                # Pull new tweets in one go and add to file
+            else:
+                print("    Paging through new tweets")
+                # Page through new tweets and add to file
 
-    # ELSE figure out how many new tweets there are
-
-    # If new tweets < 200 pull newest tweets in one go
-    # and add to [username].json
-
-    # ELSE page through new tweets 100 at a time
-    # and add each page to [username].json
-
-    # Update user_stats with new max_tweetID and other relevent info
-
-
+            # Update user_stats with relevant information
 
     #### NEW USER PROCESS ####
 
-    # See how many total tweets they have
+    for user in all_users['new']:
+        # see total tweets
+        num_tweets = check_for_new_tweets(cf_dict, user, twitter)
 
-    # If tweet_count > 2000
+        if(num_tweets > 2000):
+            print("    Paging through timeline")
+            # page through timeline 200 at a time, storing all tweets
+            # in [username].json
 
-    # Page through tweets 200 at a time, storing each page in
-    # [username].json
-
-    # ELSE tweet_count < 2000
-
-    # Get entire timeline in one pull and store it in
-    # [username].json
-
-    # Create user_stat info and store in existing user_stat
+        else:
+            print("    Pulling timeline in one")
+            # get entire timeline and store
+            # create user_stat
