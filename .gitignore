@@ -42,3 +42,4 @@ Thumbs.db
 
 config/config.yaml
 user_stats.json
+__pycache__/twitterutils.cpython-35.pyc

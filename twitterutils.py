@@ -117,7 +117,7 @@ def timeline_file_stats(screen_name, cf_t):
     #fn = cf_t['data_path']+"/timeline/"+screen_name+".json"
     fn =timeline_path(screen_name, cf_t)
     stats['tweet_max_id'] = -1
-    stats['tweet_min_id'] = -1
+    stats['tweet_min_id'] = 9999999999999
     stats['total_tweets_file']=0
     if os.path.exists(fn):
         with open (fn,'r') as f:
