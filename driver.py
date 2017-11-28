@@ -185,12 +185,17 @@ def create_user_stats(config, user):
                 else:
                     stats['user_id'] = user_info['id']
                     # Makes sure to keep the latest date instead of most recently accessed
-                    if( compare_dates(lpDT, user_stats['lpDate']) ):
+                    if( compare_dates(lpDT, stats['date_last_pull']) ):
                         stats['date_last_pull'] = lpDT
                     stats['tweets_last_pull'] = user_info['statuses_count']
 
 
-    # with open(config['path'] + '/user_stats.json', 'r') as stats_file:
+    with open(config['path'] + '/user_stats.json', 'r') as stats_file:
+        file_data = json.load(stats_file)
+        file_data[user] = stats
+
+    json.dump(file_data, open(config['path'] + '/user_stats.json', 'w'), indent=4)
+
 
     return 0
 
