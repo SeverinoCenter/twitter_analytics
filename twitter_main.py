@@ -224,9 +224,9 @@ if __name__ == "__main__":
 
 	# # Find the profiles of all the names in screen_names.txt and create a YYYY-MM-DD-user_profiles.json file
 	# # containing the profiles
-	# profiles_fn = tu.get_profiles(twitter, cf_dict['names_path'], cf_dict, names)
+	profiles_fn = tu.get_profiles(twitter, cf_dict['names_path'], cf_dict, names)
 
 	# # Create .json file for each profile
-	# tu.profiles_to_timelines(twitter, profiles_fn, cf_dict)
+	tu.profiles_to_timelines(twitter, profiles_fn, cf_dict)
 
 	create_user_stats(cf_dict)

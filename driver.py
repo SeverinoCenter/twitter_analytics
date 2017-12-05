@@ -71,7 +71,7 @@ def user_exists(config, name):
         if(file.endswith(".json")):
             current_name = path.splitext(file)[0].lower()
             # User found
-            if(current_name == name):
+            if(current_name == name.lower()):
                 return True
 
     # User not found
@@ -90,7 +90,7 @@ def get_user_stats(config, user):
     # Open the stats file and load the json data for the specific user
     with open(config['path'] + '/user_stats.json', 'r') as stats_file:
         all_info = json.load(stats_file)[user]
-    return all_info[0]
+    return all_info
 
 
 #######  check_for_new_tweets ############
@@ -104,16 +104,12 @@ def get_user_stats(config, user):
 # RETURNS
 #       num_tweets: Number of new tweets ( >= 0)
 def check_for_new_tweets(config, user, twitter):
-    num_tweets = 0;
+    # Get latest user info from twitter
     user_info_new = twitter.users.lookup(screen_name = user)
-
-    # Get true twitter screen_name
-    user_true_name = user_info_new[0]['screen_name']
-    user_info_file = get_user_stats(config, user_true_name)
-
-    num_tweets = user_info_new[0]['statuses_count'] - user_info_file['lpTweetFile']
-
-    return num_tweets
+    # Get information on the user from the stats file
+    user_info_file = get_user_stats(config, user)
+    # Return the difference between the two
+    return user_info_new[0]['statuses_count'] - user_info_file['tweets_last_pull']
 
 ######### compare_dates #########
 # Helper to compare two date strings in format of 'YYYY-MM-DD'
@@ -172,10 +168,10 @@ def create_user_stats(config, user):
 
         lpDT = date_file[0:10] # Get the date from the name of the file
         date_file = users_path + "/" + date_file
-        with open(date_file, 'r') as file:
+        with open(date_file, 'r') as d_file:
 
             # Traverse over each user profile information
-            for line in file:
+            for line in d_file:
                 # Get twitter json dump
                 user_info = json.loads(line)
 
@@ -211,17 +207,17 @@ if __name__ == '__main__':
     all_users = get_all_users_from_file(cf_dict)
 
     #### EXISTING USER PROCESS ####
-
     for user in all_users['existing']:
         user_info_new = twitter.users.lookup(screen_name = user)
         # Get true twitter screen_name
         true_name = user_info_new[0]['screen_name']
 
         # Find number of new tweets
-        # num_new = check_for_new_tweets(cf_dict, user, twitter)
+        num_new = check_for_new_tweets(cf_dict, true_name, twitter)
 
 
-        create_user_stats(cf_dict, true_name)
+        # create_user_stats(cf_dict, true_name)
+
         # No new tweets since last info pull
         num_new = 0
         if(num_new == 0):
@@ -235,18 +231,25 @@ if __name__ == '__main__':
 
             if(num_new < 200):
                 print("    Pulling newest tweets")
+                user_max_id = get_user_stats(cf_dict, true_name)['tweet_max_id']
                 # Pull new tweets in one go and add to file
+                new_tweets = twitter.statuses.user_timeline(screen_name = true_name,
+                                                               since_id = user_max_id)
             else:
                 print("    Paging through new tweets")
                 # Page through new tweets and add to file
 
-            # Update user_stats with relevant information
+        # Update user_stats with relevant information
 
     #### NEW USER PROCESS ####
-
     for user in all_users['new']:
+        # Get true twitter screen_name
+        user_info_new = twitter.users.lookup(screen_name = user)
+        true_name = user_info_new[0]['screen_name']
+
         # see total tweets
-        # num_tweets = check_for_new_tweets(cf_dict, user, twitter)
+        num_tweets = check_for_new_tweets(cf_dict, true_name, twitter)
+
 
         num_tweets = 0;
         if(num_tweets > 2000):
@@ -257,4 +260,14 @@ if __name__ == '__main__':
         else:
             print("    Pulling timeline in one")
             # get entire timeline and store
-            # create user_stat
+            tweets = twitter.statuses.user_timeline(screen_name = true_name)
+
+        user_file = cf_dict['path'] + '/tweets/' + true_name + ".json"
+        with open(user_file, 'w') as user_file:
+            for tweet in tweets:
+                user_file.write(json.dumps(tweet))
+                user_file.write("\n")
+
+
+        # create user_stat
+        # create_user_stats(cf_dict, true_name)

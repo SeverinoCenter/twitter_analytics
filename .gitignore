@@ -39,7 +39,6 @@ Thumbs.db
 
 # Custom Ignores #
 ##################
-
 config/config.yaml
 user_stats.json
 __pycache__/
