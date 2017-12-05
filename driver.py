@@ -109,6 +109,7 @@ def check_for_new_tweets(config, user, twitter):
     # Get information on the user from the stats file
     user_info_file = get_user_stats(config, user)
     # Return the difference between the two
+    # print(user_info_new, "\n ========== \n", user_info_file)
     return user_info_new[0]['statuses_count'] - user_info_file['tweets_last_pull']
 
 ######### compare_dates #########
@@ -212,11 +213,13 @@ if __name__ == '__main__':
         # Get true twitter screen_name
         true_name = user_info_new[0]['screen_name']
 
+
+        create_user_stats(cf_dict, true_name)
+
         # Find number of new tweets
         num_new = check_for_new_tweets(cf_dict, true_name, twitter)
 
 
-        # create_user_stats(cf_dict, true_name)
 
         # No new tweets since last info pull
         num_new = 0
@@ -228,16 +231,34 @@ if __name__ == '__main__':
         # New tweets since last pull
         else:
             print(num_new, "new tweets detected for", user)
+            user_max_id = get_user_stats(cf_dict, true_name)['tweet_max_id']
 
             if(num_new < 200):
                 print("    Pulling newest tweets")
-                user_max_id = get_user_stats(cf_dict, true_name)['tweet_max_id']
+
                 # Pull new tweets in one go and add to file
                 new_tweets = twitter.statuses.user_timeline(screen_name = true_name,
                                                                since_id = user_max_id)
             else:
                 print("    Paging through new tweets")
                 # Page through new tweets and add to file
+
+                tweets = []
+                # Get the first page to create a max_id Number
+                tweets.append(twitter.statuses.user_timeline(screen_name = true_name,
+                                                                since_id = user_max_id,
+                                                                   count = 200) )
+
+                temp_max_id = tweets[199][id]
+                for num in range(1, (num_new // 200)):
+                    init_len = len(tweets)
+                    tweets.append(twitter.statuses.user_timeline(screen_name = true_name,
+                                                                    since_id = user_max_id,
+                                                                       count = 200,
+                                                                      max_id = temp_max_id) )
+                    # Get the number of tweets pulled to get the last ID
+                    num_pulled = init_len - len(tweets)
+                    temp_max_id = tweets[ (200 * num) + num_pulled - 1][id]
 
         # Update user_stats with relevant information
 
