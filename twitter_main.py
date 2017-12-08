@@ -62,19 +62,18 @@ def gather_user_stats(screenname, config):
 
 	# Initialize return dict with initial values
 	user_stats = { 'screen_name': screenname,
-				   'userID': -1,
-	 			   'lpDate': "0000-00-00",            # Date of last pull
-	 			   'lpTweetCount': -1,		# Number of tweets in last pull
-	 			   'lpTweetFile': -1,		# number of tweets on file
-	 			   'numTweetsNA': -1,		# Number of tweets that can't access
-	 			   'maxTweetID': -1,
-	 			   'minTweetID': -1 }
+				   'user_id': -1,
+	 			   'date_last_pull': "0000-00-00",            # Date of last pull
+	 			   'tweets_last_pull': -1,		# Number of tweets in last pull
+	 			   'num_tweet_file': -1,		# number of tweets on file
+	 			   'max_tweet_id': -1,		# Number of tweets that can't access
+	 			   'min_tweet_id': -1 }
 
 	# Get maxTweetID, minTweetID, lpTweetFile
 	partial_stats = tu.timeline_file_stats(screenname, config)
-	user_stats['lpTweetFile'] = partial_stats['total_tweets_file']
-	user_stats['maxTweetID'] = partial_stats['tweet_max_id']
-	user_stats['minTweetID'] = partial_stats['tweet_min_id']
+	user_stats['num_tweet_file'] = partial_stats['total_tweets_file']
+	user_stats['max_tweet_id'] = partial_stats['tweet_max_id']
+	user_stats['min_tweet_id'] = partial_stats['tweet_min_id']
 
 	# Traverse over YYYY-MM-DD-user-profiles.json files
 	for date_file in listdir(users_path):
@@ -98,11 +97,9 @@ def gather_user_stats(screenname, config):
 				else:
 					user_stats['userID'] = user_info['id']
 					# Makes sure to keep the latest date instead of most recently accessed
-					if( compare_dates(lpDT, user_stats['lpDate']) ):
-						user_stats['lpDate'] = lpDT
-					user_stats['lpTweetCount'] = user_info['statuses_count']
-					user_stats['numTweetsNA'] = user_stats['lpTweetCount'] - user_stats['lpTweetFile']
-
+					if( compare_dates(lpDT, user_stats['date_last_pull']) ):
+						user_stats['date_last_pull'] = lpDT
+					user_stats['tweets_last_pull'] = user_info['statuses_count']
 	return user_stats
 
 # Create a csv file containing the stats for every user in the /tweets directory
