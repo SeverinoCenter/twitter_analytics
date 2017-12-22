@@ -325,17 +325,25 @@ if __name__ == '__main__':
 
             # Get the first page to create a max_id Number
             tweets = twitter.statuses.user_timeline(screen_name = true_name,
-                                                          count = 200)
+                                                          count = 200,
+                                                    include_rts = True)
 
-            temp_max_id = tweets[199][id]
-            for num in range(1, (num_new // 200) + 1):
+
+            # print(tweets[-1])
+            # break;
+            temp_max_id = tweets[-1]['id']
+            num_pulled = len(tweets)
+            while num_pulled != 0:
                 temp_len = len(tweets)
                 tweets += twitter.statuses.user_timeline(screen_name = true_name,
-                                                                   count = 200,
-                                                                  max_id = temp_max_id)
+                                                               count = 200,
+                                                              max_id = temp_max_id,
+                                                         include_rts = True)
                 # Get the number of tweets pulled to get the last ID
-                num_pulled = temp_len - len(tweets)
-                temp_max_id = tweets[ (200 * num) + num_pulled - 1][id]
+                num_pulled = len(tweets) - temp_len
+                print(num_pulled)
+                print(len(tweets))
+                temp_max_id = tweets[-1]['id']-1
 
         else:
             print(num_tweets, " tweets detected for ", user)
