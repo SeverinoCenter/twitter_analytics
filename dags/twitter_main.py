@@ -109,7 +109,7 @@ def gather_user_stats(screenname, config):
 #
 # RETURNS
 #		NA
-def create_user_stats(config):
+def create_user_stats(twitter, config):
 	# tweets_path = config['data_path'].replace("profiles", "tweets/")
 	#
 	# # Create a list of users on file
@@ -186,7 +186,7 @@ def text_to_csv(file):
 #		Dictionary containing config info
 def config_init(file):
 	# Configure config files
-	twitter_config = "config/config.yaml"
+	twitter_config = "/usr/local/airflow/dags/config/config.yaml"
 	with open(twitter_config, 'r') as yaml_t:
 		cf_dict=ruamel.yaml.round_trip_load(yaml_t, preserve_quotes=True)
 
@@ -204,9 +204,7 @@ def names_to_string(config):
 	df = df.drop_duplicates(subset='screen_name', keep="first")  # Remove any duplicate users
 	return ','.join(list(df['screen_name']))
 
-
-if __name__ == "__main__":
-
+def main():
 	# Create config dictionary
 	cf_dict = config_init("config/config.yaml");
 
@@ -226,4 +224,8 @@ if __name__ == "__main__":
 	# # Create .json file for each profile
 	tu.profiles_to_timelines(twitter, profiles_fn, cf_dict)
 
-	create_user_stats(cf_dict)
+	create_user_stats(twitter, cf_dict)
+
+
+if __name__ == "__main__":
+    main()
