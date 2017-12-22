@@ -8,6 +8,7 @@ import math
 import csv
 import json
 import datetime
+import time
 import os
 
 ##########  config_init  ##############
@@ -198,7 +199,9 @@ def create_user_stats(config, user):
                     # Makes sure to keep the latest date instead of most recently accessed
                     if( compare_dates(lpDT, stats['date_last_pull']) ):
                         stats['date_last_pull'] = lpDT
-                    stats['tweets_last_pull'] = user_info['statuses_count']
+                    # print(user_info['statuses_count'])
+                    if(user_info['statuses_count'] > stats['tweets_last_pull']):
+                        stats['tweets_last_pull'] = user_info['statuses_count']
 
 
     with open(config['path'] + '/user_stats.json', 'r') as stats_file:
@@ -211,6 +214,45 @@ def create_user_stats(config, user):
     return 0
 
 
+def to_str(in_dict):
+    names = ""
+
+    for key, value in in_dict.items():
+        for name in value:
+            names += name + ","
+
+    return names.rstrip(",")
+
+def create_profile_stats(cf_dict, all_users):
+
+    names = to_str(all_users)
+
+
+    dt = datetime.datetime.now()
+    fn = cf_dict["data_path"] + "/" + dt.strftime('%Y-%m-%d-user-profiles.json')
+    with open(fn, 'w') as f:
+        # Create a subquery, looking up information about users listed in 'string'
+        # twitter api-docs: https://developer.twitter.com/en/docs/accounts-and-users/follow-search-get-users/api-reference/get-users-lookup
+        profiles = twitter.users.lookup(screen_name = names)
+        sub_start_time = time.time()
+
+        for profile in profiles:
+            print("Searching twitter for User profile: ", profile['name'])
+            print("User tweets: ", profile['statuses_count'])
+
+            # Save user info
+            f.write(json.dumps(profile))
+            f.write("\n")
+
+        # Get time that the query's took
+        sub_elapsed_time = time.time() - sub_start_time;
+
+        # If the total time for the query was less than the sleep interval,
+        # wait the remaining amount of time
+        if(sub_elapsed_time < cf_dict['sleep_interval']):
+            time.sleep(cf_dict['sleep_interval'] + 1 - sub_elapsed_time)
+
+    return fn
 
 if __name__ == '__main__':
     # Create Initial config dictionary
@@ -220,6 +262,8 @@ if __name__ == '__main__':
 
     # Get usernames from text file
     all_users = get_all_users_from_file(cf_dict)
+
+    create_profile_stats(cf_dict, all_users)
 
     #### EXISTING USER PROCESS ####
     for user in all_users['existing']:
@@ -240,19 +284,21 @@ if __name__ == '__main__':
         if(num_new == 0):
             print("    No new tweets detected for", true_name)
             print("    Continuing to next user")
+            create_user_stats(cf_dict, true_name)
             continue;
 
         # New tweets since last pull
         else:
             print(num_new, "new tweets detected for", true_name)
-            user_max_id = get_user_stats(cf_dict, true_name)[0]['max_tweet_id']
+            user_max_id = get_user_stats(cf_dict, true_name)['max_tweet_id']
 
             if(num_new < 200):
                 print("    Pulling newest tweets")
 
                 # Pull new tweets in one go and add to file
                 tweets = twitter.statuses.user_timeline(screen_name = true_name,
-                                                           since_id = user_max_id)
+                                                           since_id = user_max_id,
+                                                        include_rts = True)
 
             else:
                 print("    Paging through new tweets")
@@ -293,7 +339,7 @@ if __name__ == '__main__':
             write_file.write(data)
             write_file.close()
 
-            print("  Pulled", len(tweets), "new tweets for user", true_name)
+            print("    Pulled", len(tweets), "new tweets for user", true_name)
 
 
 
@@ -317,7 +363,7 @@ if __name__ == '__main__':
         if(num_tweets == 0):
             print("No tweets detected for ", true_name)
 
-        if(num_tweets > 2000):
+        if(num_tweets > 200):
             print(num_tweets, " tweets detected for ", true_name)
             print("    Paging through timeline")
             # page through timeline 200 at a time, storing all tweets
@@ -344,7 +390,9 @@ if __name__ == '__main__':
             print(num_tweets, " tweets detected for ", user)
             print("    Pulling timeline in one")
             # get entire timeline and store
-            tweets = twitter.statuses.user_timeline(screen_name = true_name)
+            tweets = twitter.statuses.user_timeline(screen_name = true_name,
+                                                          count = num_tweets,
+                                                    include_rts = True)
 
 
         user_file = cf_dict['path'] + '/tweets/' + true_name + '.json'
