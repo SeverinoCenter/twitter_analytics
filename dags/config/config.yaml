@@ -1,8 +1,0 @@
-file: screen_names.txt  #Filename for list of twitter IDs.
-config: /dags/config  #Spot for the configuration.
-data: /dags/profiles      #Filename for data.
-consumer_key: 3wk19u3ngRxW59soq7OKwNczm
-consumer_secret: 3KhvhUeUiTIlkaJpH525GQ1d5vSbWr4gRQNKSJkjnPPx6ZU8Lj
-access_token: 18250462-vyj5vdXEcWKQitODPY8SMm9ujpfVQLb0lHVOqyjtm
-access_token_secret: 7asxrYIfY5ASVBS7L1ByLRtgD9kkPHrFf8UxxCgYSRHAo
-sleep_interval: 5 ## twitter api access limit Requests / 15-min window (user auth) 180 => 5 sec/request
