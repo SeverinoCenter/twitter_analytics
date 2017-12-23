@@ -74,17 +74,12 @@ then
     echo "Initialize database..."
     $CMD initdb
     exec $CMD webserver
-  elif [ "$1" = "jupyter" ]
-  then
-    echo "Initialize jupyter..."
-    exec jupyter notebook --ip=127.0.0.1
   else
     sleep 10
     exec $CMD "$@"
   fi
 elif [ "$EXECUTOR" = "Local" ]
 then
-  if [ "$1" = "webserver" ]; then
   sed -i "s/executor = CeleryExecutor/executor = LocalExecutor/" "$AIRFLOW_HOME"/airflow.cfg
   sed -i "s#sql_alchemy_conn = postgresql+psycopg2://airflow:airflow@postgres/airflow#sql_alchemy_conn = postgresql+psycopg2://$POSTGRES_USER:$POSTGRES_PASSWORD@$POSTGRES_HOST:$POSTGRES_PORT/$POSTGRES_DB#" "$AIRFLOW_HOME"/airflow.cfg
   sed -i "s#broker_url = redis://redis:6379/1#broker_url = redis://$REDIS_PREFIX$REDIS_HOST:$REDIS_PORT/1#" "$AIRFLOW_HOME"/airflow.cfg
@@ -92,9 +87,6 @@ then
   $CMD initdb
   exec $CMD webserver &
   exec $CMD scheduler
-  elif [ "$1" = "jupyter" ];then
-    exec jupyter notebook
-  fi
 # By default we use SequentialExecutor
 else
   if [ "$1" = "version" ]; then
