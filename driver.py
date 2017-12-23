@@ -213,7 +213,14 @@ def create_user_stats(config, user):
 
     return 0
 
-
+######### to_str ########
+# Concatenates values in dictionary into a comma seperated string
+#
+# PARAMS
+#       in_dict: Dictionary containing values to be concatenated
+#
+# RETURNS
+#       names: String containing all values in keys
 def to_str(in_dict):
     names = ""
 
@@ -223,6 +230,17 @@ def to_str(in_dict):
 
     return names.rstrip(",")
 
+
+######### create_profile_stats ###########
+# Generates/Modifies the YYYY-MM-DD-user-profiles.json file for users entered
+# in the text file
+#
+# PARAMS
+#       cf_dict: Config dict containing environment variables
+#       all_users: Dictionary containing the users
+#
+# RETURNS
+#       fn: String containing the full path of the generated/modified file
 def create_profile_stats(cf_dict, all_users):
 
     names = to_str(all_users)
