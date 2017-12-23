@@ -6,7 +6,7 @@
 *.exe
 *.o
 *.so
-
+*.idea
 # Packages #
 ############
 # it's better to unpack these files and commit the raw source
@@ -35,9 +35,10 @@
 .Trashes
 ehthumbs.db
 Thumbs.db
-
+.idea/*
 
 # Custom Ignores #
 ##################
-
 config/config.yaml
+user_stats.json
+__pycache__/
