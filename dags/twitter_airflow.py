@@ -8,6 +8,7 @@ import sys
 
 sys.path.append("/usr/local/airflow/dags")
 import twitter_main as tm
+import driver as d
 import twitterutils as tu
 
 
@@ -31,27 +32,35 @@ default_args = {
 dag = DAG('twitter_get_profiles', default_args=default_args, schedule_interval="0 0 * * *")
 
 
-task1 = PythonOperator(
-              task_id='get_profiles',
-              python_callable=tm.main,
-              dag=dag)
+# task1 = PythonOperator(
+#               task_id='get_profiles',
+#               python_callable=tm.main,
+#               dag=dag)
 
 # John. #Currently this (below) doesn't work because we are using output from task 1 in task 2. Tasks have to be independent.
 
 # # Create config dictionary
-# cf_dict = tm.config_init("./config/config.yaml");
-# print("dict", cf_dict)
-#
-# # Convert screen_names.txt to screen_names.csv
-# tm.text_to_csv(cf_dict['names_path'])
-#
-# # # Convert list of names into one string to pull multiple users in one request
-# names = tm.names_to_string(cf_dict);
-#
-# # # Authorize twitter
-# twitter = tu.create_twitter_auth(cf_dict)
+cf_dict = tm.config_init("./config/config.yaml");
 
+# Authorize twitter
+twitter = tu.create_twitter_auth(cf_dict)
 
+# Create dictionary of names
+all_users = d.get_all_users_from_file(cf_dict)
+
+task1 = PythonOperator(
+              task_id='get_profiles',
+              python_callable=d.create_profile_stats,
+              op_args=(cf_dict, all_users),
+              dag=dag)
+
+task2 = PythonOperator(
+              task_id='create_timelines',
+              python_callable=d.create_timelines,
+              op_args=(cf_dict, all_users),
+              dag=dag)
+
+task2.set_upstream(task1)
 # task1 = PythonOperator(
 #              task_id='get_profiles',
 #              python_callable=tu.get_profiles,
@@ -66,4 +75,3 @@ task1 = PythonOperator(
 #              dag=dag)
 #
 # task2.set_upstream(task1)
-

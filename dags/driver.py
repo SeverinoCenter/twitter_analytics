@@ -1,6 +1,5 @@
 import twitterutils as tu
 
-# import twitter
 import sys
 import ruamel.yaml
 import pandas as pd
@@ -10,6 +9,8 @@ import json
 import datetime
 import time
 import os
+import traceback
+from twitter import *
 
 ##########  config_init  ##############
 # Initialize the configuration file and store it in dictionary
@@ -64,7 +65,7 @@ def get_all_users_from_file(config):
 #       True: Users exists in database
 #       False: User doesnt exist
 def user_exists(config, name):
-    users_path = config['path'] + '/tweets/';
+    users_path = config['path'] + '/dags/tweets/';
 
     # Traverse over tweets directory
     for file in os.listdir(users_path):
@@ -106,7 +107,12 @@ def get_user_stats(config, user):
 #       num_tweets: Number of new tweets ( >= 0)
 def check_for_new_tweets(config, user, twitter):
     # Get latest user info from twitter
-    user_info_new = twitter.users.lookup(screen_name = user)
+    try:
+        user_info_new = twitter.users.lookup(screen_name = user)
+    except TwitterHTTPError:
+        traceback.print_exc()
+        time.sleep(config['sleep_interval'])
+
     # Get information on the user from the stats file
     user_info_file = get_user_stats(config, user)
     # Return the difference between the two
@@ -222,13 +228,26 @@ def create_user_stats(config, user):
 # RETURNS
 #       names: String containing all values in keys
 def to_str(in_dict):
-    names = ""
+    names = []
 
     for key, value in in_dict.items():
-        for name in value:
-            names += name + ","
+        arg_count = 0
+        name_count = 0
 
-    return names.rstrip(",")
+        for name in value:
+            if(name_count == 0):
+                names.append(name + ',')
+            else:
+                names[arg_count] += name + ','
+
+            name_count += 1
+
+            if(name_count == 50):
+                names[arg_count].rstrip(',')
+                name_count = 0
+                arg_count += 1
+
+    return names
 
 
 ######### create_profile_stats ###########
@@ -251,44 +270,46 @@ def create_profile_stats(cf_dict, all_users):
     with open(fn, 'w') as f:
         # Create a subquery, looking up information about users listed in 'string'
         # twitter api-docs: https://developer.twitter.com/en/docs/accounts-and-users/follow-search-get-users/api-reference/get-users-lookup
-        profiles = twitter.users.lookup(screen_name = names)
-        sub_start_time = time.time()
+        for name_set in names:
+            try:
+                profiles = twitter.users.lookup(screen_name = name_set)
+                sub_start_time = time.time()
 
-        for profile in profiles:
-            print("Searching twitter for User profile: ", profile['name'])
-            print("User tweets: ", profile['statuses_count'])
+                for profile in profiles:
+                    print("Searching twitter for User profile: ", profile['name'])
+                    print("User tweets: ", profile['statuses_count'])
 
-            # Save user info
-            f.write(json.dumps(profile))
-            f.write("\n")
+                    # Save user info
+                    f.write(json.dumps(profile))
+                    f.write("\n")
 
-        # Get time that the query's took
-        sub_elapsed_time = time.time() - sub_start_time;
+                    # Get time that the query's took
+                    sub_elapsed_time = time.time() - sub_start_time;
 
-        # If the total time for the query was less than the sleep interval,
-        # wait the remaining amount of time
-        if(sub_elapsed_time < cf_dict['sleep_interval']):
-            time.sleep(cf_dict['sleep_interval'] + 1 - sub_elapsed_time)
-
+                    # If the total time for the query was less than the sleep interval,
+                    # wait the remaining amount of time
+                    if(sub_elapsed_time < cf_dict['sleep_interval']):
+                        time.sleep(cf_dict['sleep_interval'] + 1 - sub_elapsed_time)
+            except TwitterHTTPError:
+                print('\n-----------------\n')
+                traceback.print_exc()
+                time.sleep(cf_dict['sleep_interval'])
     return fn
 
-if __name__ == '__main__':
-    # Create Initial config dictionary
-    cf_dict = config_init("config/config.yaml")
-    twitter = tu.create_twitter_auth(cf_dict)
-    # print(cf_dict)
+def create_timelines(cf_dict, all_users):
 
-    # Get usernames from text file
-    all_users = get_all_users_from_file(cf_dict)
-
-    create_profile_stats(cf_dict, all_users)
 
     #### EXISTING USER PROCESS ####
     for user in all_users['existing']:
 
         print("Processing existing user", user)
 
-        user_info_new = twitter.users.lookup(screen_name = user)
+        try:
+            user_info_new = twitter.users.lookup(screen_name = user)
+        except TwitterHTTPError:
+            traceback.print_exc()
+            time.sleep(cf_dict['sleep_interval'])
+
         # Get true twitter screen_name
         true_name = user_info_new[0]['screen_name']
 
@@ -371,7 +392,13 @@ if __name__ == '__main__':
 
         print("Processing new user", user)
 
-        user_info_new = twitter.users.lookup(screen_name = user)
+        try:
+            user_info_new = twitter.users.lookup(screen_name = user)
+        except TwitterHTTPError:
+            print("User was not found/does not exist.....sleeping")
+            time.sleep(cf_dict['sleep_interval'])
+            continue
+
         true_name = user_info_new[0]['screen_name']
 
         # see total tweets
@@ -424,3 +451,16 @@ if __name__ == '__main__':
 
         # create user_stat
         create_user_stats(cf_dict, true_name)
+
+if __name__ == '__main__':
+
+    # Create Initial config dictionary
+    cf_dict = config_init("config/config.yaml")
+    twitter = tu.create_twitter_auth(cf_dict)
+
+    # Get usernames from text file
+    all_users = get_all_users_from_file(cf_dict)
+
+    create_profile_stats(cf_dict, all_users)
+
+    create_timelines(cf_dict, all_users)
