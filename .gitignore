@@ -41,5 +41,6 @@ Thumbs.db
 ##################
 config/config.yaml
 user_stats.json
-__pycache__/
+__pycache__/*
+__pycache__
 config.yaml
