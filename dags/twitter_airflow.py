@@ -52,13 +52,13 @@ all_users = d.get_all_users_from_file(cf_dict)
 task1 = PythonOperator(
               task_id='get_profiles',
               python_callable=d.create_profile_stats,
-              op_args=(cf_dict, all_users),
+              op_args=(twitter, cf_dict, all_users),
               dag=dag_profiles)
 
 task2 = PythonOperator(
               task_id='create_timelines',
               python_callable=d.create_timelines,
-              op_args=(cf_dict, all_users),
+              op_args=(twitter, cf_dict, all_users),
               dag=dag_timelines)
 
 # task2.set_upstream(task1)

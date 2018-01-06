@@ -39,6 +39,7 @@ def config_init(file):
 # RETURNS
 #       all_users: dictionary containing existing users and new users
 def get_all_users_from_file(config):
+    print(config['path'], config['config'], config['file'])
     users_file = open(config['path'] + config['config'] + '/' + config['file'], 'r')
 
     all_users = { 'existing': [],
@@ -90,7 +91,7 @@ def user_exists(config, name):
 #        stats: Dictionary containing the user stats
 def get_user_stats(config, user):
     # Open the stats file and load the json data for the specific user
-    with open(config['path'] + '/user_stats.json', 'r') as stats_file:
+    with open(config['path'] + '/dags/user_stats.json', 'r') as stats_file:
         all_info = json.load(stats_file)[user]
     return all_info
 
@@ -210,11 +211,11 @@ def create_user_stats(config, user):
                         stats['tweets_last_pull'] = user_info['statuses_count']
 
 
-    with open(config['path'] + '/user_stats.json', 'r') as stats_file:
+    with open(config['path'] + '/dags/user_stats.json', 'r') as stats_file:
         file_data = json.load(stats_file)
         file_data[user] = stats
 
-    json.dump(file_data, open(config['path'] + '/user_stats.json', 'w'), indent=4)
+    json.dump(file_data, open(config['path'] + '/dags/user_stats.json', 'w'), indent=4)
 
 
     return 0
@@ -260,7 +261,7 @@ def to_str(in_dict):
 #
 # RETURNS
 #       fn: String containing the full path of the generated/modified file
-def create_profile_stats(cf_dict, all_users):
+def create_profile_stats(twitter, cf_dict, all_users):
 
     names = to_str(all_users)
 
@@ -296,7 +297,7 @@ def create_profile_stats(cf_dict, all_users):
                 time.sleep(cf_dict['sleep_interval'])
     return fn
 
-def create_timelines(cf_dict, all_users):
+def create_timelines(twitter, cf_dict, all_users):
 
 
     #### EXISTING USER PROCESS ####
@@ -461,6 +462,6 @@ if __name__ == '__main__':
     # Get usernames from text file
     all_users = get_all_users_from_file(cf_dict)
 
-    create_profile_stats(cf_dict, all_users)
+    # create_profile_stats(twitter, cf_dict, all_users)
 
-    create_timelines(cf_dict, all_users)
+    create_timelines(twitter, cf_dict, all_users)
