@@ -44,3 +44,4 @@ user_stats.json
 __pycache__/*
 __pycache__
 config.yaml
+screen_names.txt

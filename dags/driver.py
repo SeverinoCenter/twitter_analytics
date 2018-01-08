@@ -22,7 +22,7 @@ from twitter import *
 #        Dictionary containing config info
 def config_init(file):
     # Configure config files
-    twitter_config = "config/config.yaml"
+    twitter_config = "dags/config/config.yaml"
     with open(twitter_config, 'r') as yaml_t:
         cf_dict=ruamel.yaml.round_trip_load(yaml_t, preserve_quotes=True)
 
@@ -91,6 +91,10 @@ def user_exists(config, name):
 #        stats: Dictionary containing the user stats
 def get_user_stats(config, user):
     # Open the stats file and load the json data for the specific user
+    files = os.listdir(os.curdir)
+    for f in files:
+        print(f)
+
     with open(config['path'] + '/dags/user_stats.json', 'r') as stats_file:
         all_info = json.load(stats_file)[user]
     return all_info
@@ -211,9 +215,19 @@ def create_user_stats(config, user):
                         stats['tweets_last_pull'] = user_info['statuses_count']
 
 
-    with open(config['path'] + '/dags/user_stats.json', 'r') as stats_file:
-        file_data = json.load(stats_file)
-        file_data[user] = stats
+    stats_path = config['path'] + '/dags/user_stats.json'
+
+    if(os.path.isfile(stats_path) and os.access(stats_path, os.R_OK)):
+        # user_stats.json exists and is readable
+        with open(stats_path, 'r') as stats_file:
+            file_data = json.load(stats_file)
+            file_data[user] = stats
+
+    else:
+        # user_stats.json doesn't exist
+        with open(stats_path, 'w') as stats_file:
+            file_data = {}
+            file_data[user] = stats
 
     json.dump(file_data, open(config['path'] + '/dags/user_stats.json', 'w'), indent=4)
 
@@ -364,7 +378,7 @@ def create_timelines(twitter, cf_dict, all_users):
                     temp_max_id = tweets[-1]['id'] - 1
 
             # Add new tweets to file
-            user_file = cf_dict['path'] + '/tweets/' + true_name + '.json'
+            user_file = cf_dict['path'] + cf_dict['data_path'].replace('profiles', 'tweets') + true_name + '.json'
 
             # Save the current data in file
             with open(user_file, 'r') as original:
@@ -441,7 +455,7 @@ def create_timelines(twitter, cf_dict, all_users):
                                                     include_rts = True)
 
 
-        user_file = cf_dict['path'] + '/tweets/' + true_name + '.json'
+        user_file = cf_dict['data_path'].replace('profiles', 'tweets/') + true_name + '.json'
         write_file = open(user_file, 'a')
         # Loop through each tweet and write it to the file
         for tweet in tweets:
@@ -453,8 +467,8 @@ def create_timelines(twitter, cf_dict, all_users):
         # create user_stat
         create_user_stats(cf_dict, true_name)
 
-if __name__ == '__main__':
 
+def main():
     # Create Initial config dictionary
     cf_dict = config_init("config/config.yaml")
     twitter = tu.create_twitter_auth(cf_dict)
@@ -465,3 +479,6 @@ if __name__ == '__main__':
     # create_profile_stats(twitter, cf_dict, all_users)
 
     create_timelines(twitter, cf_dict, all_users)
+
+if __name__ == '__main__':
+    main()

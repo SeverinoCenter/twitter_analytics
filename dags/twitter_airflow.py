@@ -32,16 +32,10 @@ default_args = {
 dag_profiles = DAG('twitter_get_profiles', default_args=default_args, schedule_interval="0 0 * * *")
 dag_timelines = DAG('twitter_get_timelines', default_args=default_args, schedule_interval="0 0 * * *")
 
-
-# task1 = PythonOperator(
-#               task_id='get_profiles',
-#               python_callable=tm.main,
-#               dag=dag)
-
 # John. #Currently this (below) doesn't work because we are using output from task 1 in task 2. Tasks have to be independent.
 
 # # Create config dictionary
-cf_dict = tm.config_init("./config.yaml");
+cf_dict = d.config_init("./config.yaml");
 
 # Authorize twitter
 twitter = tu.create_twitter_auth(cf_dict)
@@ -60,19 +54,3 @@ task2 = PythonOperator(
               python_callable=d.create_timelines,
               op_args=(twitter, cf_dict, all_users),
               dag=dag_timelines)
-
-# task2.set_upstream(task1)
-# task1 = PythonOperator(
-#              task_id='get_profiles',
-#              python_callable=tu.get_profiles,
-#              op_args=(twitter, cf_dict['names_path'], cf_dict, names),
-#              dag=dag)
-#
-# #Currently this doesn't work because we are using output from task 1 in task 2. Tasks have to be independent.
-# task2 = PythonOperator(
-#              task_id='profiles_to_timelines',
-#              python_callable=tu.profiles_to_timelines,
-#              op_args=(twitter, profiles_fn, cf_dict),
-#              dag=dag)
-#
-# task2.set_upstream(task1)
