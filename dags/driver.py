@@ -91,14 +91,58 @@ def user_exists(config, name):
 #        stats: Dictionary containing the user stats
 def get_user_stats(config, user):
     # Open the stats file and load the json data for the specific user
-    files = os.listdir(os.curdir)
-    for f in files:
-        print(f)
 
     with open(config['path'] + '/dags/user_stats.json', 'r') as stats_file:
-        all_info = json.load(stats_file)[user]
-    return all_info
 
+        all_info = json.load(stats_file)
+        if user in all_info:
+            print("User stats found ...")
+            user_info = all_info[user]
+        else:
+            print("User stats not found ...")
+            user_info = process_existing_tweets(config, user)
+    return user_info
+
+###### process_existing_tweets ######
+# Create a user_stats.json entry for a new user that has an existing dataset in
+# the form of a user_name.json file
+#
+# PARAMS
+#       config: Main config dict
+#       user: Screenname of user
+#
+# RETURNS
+#       user_info: Dictionary containing the same info that is in the
+#                   user_stats.json file
+def process_existing_tweets(config, user):
+    file_path = config['data_path'].replace('profiles', 'tweets/') + user + '.json'
+    user_info = {
+        "screen_name": user,
+        "user_id": 0,
+        "date_last_pull": "0000-00-00",
+        "tweets_last_pull": 0,
+        "max_tweet_id": -1,
+        "min_tweet_id": -1,
+        "num_tweet_file": 0
+    }
+    with open(file_path, 'r') as user_file:
+        for tweet in user_file:
+            # Increment number of tweets
+            user_info['num_tweet_file'] += 1
+
+            # Find new max_tweet_id and min_tweet_id
+            tweet_data = json.loads(tweet)
+            if(user_info['min_tweet_id'] == -1):
+                user_info['min_tweet_id'] = tweet_data['id']
+
+            user_info['max_tweet_id'] = max(user_info['max_tweet_id'], tweet_data['id'])
+            user_info['min_tweet_id'] = min(user_info['min_tweet_id'], tweet_data['id'])
+
+            # Set user_id
+            user_info['user_id'] = tweet_data['user']['id']
+            user_info['tweets_last_pull'] = tweet_data['user']['statuses_count']
+
+    return user_info
 
 #######  check_for_new_tweets ############
 # Checks to see if there are any new tweets by a specific user
