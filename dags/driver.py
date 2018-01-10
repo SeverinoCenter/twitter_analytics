@@ -378,7 +378,7 @@ def create_timelines(twitter, cf_dict, all_users):
                     temp_max_id = tweets[-1]['id'] - 1
 
             # Add new tweets to file
-            user_file = cf_dict['path'] + cf_dict['data_path'].replace('profiles', 'tweets') + true_name + '.json'
+            user_file = cf_dict['data_path'].replace('profiles', 'tweets/') + true_name + '.json'
 
             # Save the current data in file
             with open(user_file, 'r') as original:
