@@ -45,3 +45,4 @@ __pycache__/*
 __pycache__
 config.yaml
 screen_names.txt
+screen_names_large.txt
