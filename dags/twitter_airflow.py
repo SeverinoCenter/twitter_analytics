@@ -12,7 +12,7 @@ import driver as d
 import twitterutils as tu
 
 
-startdate = datetime(2018, 02, 01, 0, 0)
+startdate = datetime(2018, 2, 1, 0, 0)
 default_args = {
      'owner': 'jason',
      'depends_on_past': False,
