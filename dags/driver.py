@@ -520,7 +520,7 @@ def main():
     # Get usernames from text file
     all_users = get_all_users_from_file(cf_dict)
 
-    # create_profile_stats(twitter, cf_dict, all_users)
+    create_profile_stats(twitter, cf_dict, all_users)
 
     create_timelines(twitter, cf_dict, all_users)
 
