@@ -11,24 +11,25 @@ Insert short description here
 
 ## 1. Installation
 
-#### 1.1 Required Packages
+### 1.1 Required Packages
 
-Clone the repository into the directory of your choice using
-
-```
-$ git clone https://github.com/Kuberlytics/twitter_analytics
-```
-
-To successfully get the python loaded on Airflow and Docker, a few packages are
-required. You can install them using pip3 as follows:
+To successfully get Data Collection started, you need to have the 
+pandas, twitter, and ruamel.yaml python packages. You can install
+them using pip3 as follows:
 
 ```
 $ pip3 install pandas twitter ruamel.yaml
 ```
 
+If you don't have pip3 installed, install it using
+
+```
+$ sudo apt-get install python3-pip
+```
+
 You also need Docker and Docker Compose.
 
-Docker can be installed with the following command:
+Docker can be installed using Apt with the following command:
 
 ```
 $ sudo apt install docker.io
