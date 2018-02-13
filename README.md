@@ -1,6 +1,10 @@
 # Twitter Analytics
 
-Insert short description here
+Twitter Analytics is a way for data scientists to automate data collection scripts
+using Airflow running on Docker.
+
+
+**This is currently in active development and subject to change**
 
 
 ## Table of Contents
