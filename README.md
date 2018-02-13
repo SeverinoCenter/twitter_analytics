@@ -58,12 +58,21 @@ which will be needed for the next step.
 
 ### 1.3 Setup
 
-To begin using the twitter collection, you first need to copy the dags/config/config.yaml.sample
+To begin using the Twitter collection, you first need to copy the dags/config/config.yaml.sample
 to dags/config/config.yaml using the command
 
 ```
 $ cp dags/config/config.yaml.sample dags/config/config.yaml
 ```
+
+After you have a private config.yaml file, you need the copy the Twitter API keys into
+the config so Twitter can verify.
+
+**MAKE SURE TO NOT PUBLICLY RELAESE THESE KEYS**
+
+The config.yaml is listed in the .gitignore to prevent this.
+
+Docker is using port 8080 by default, so make sure to open it to successfully get Docker running.
 
 ## 2. Usage
 
