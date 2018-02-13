@@ -42,6 +42,28 @@ $ sudo apt install docker.io
 Follow the instructions [here](https://docs.docker.com/compose/install/#install-compose)
 to install Compose
 
+### 1.2 Twitter API Access
+
+To get access to the Twitter API, you first need to have a twitter account.
+If you don't have an account, you can sign up [here](https://www.twitter.com/signup).
+
+Follow the next steps to access your API Key, API Secret, Access Token, and Access Token Secret
+which will be needed for the next step.
+
+ - Go [here](https://apps.twitter.com) and log in with your Twitter account. This will give you a 
+   developer account under the same username as your regular Twitter account.
+ - Click 'Create New App'
+ - Fill out the form, agree to the terms, and click 'Create Your Twitter Application'
+ - Click on the 'Keys and Access Tokens' tab to view the needed keys
+
+### 1.3 Setup
+
+To begin using the twitter collection, you first need to copy the dags/config/config.yaml.sample
+to dags/config/config.yaml using the command
+
+```
+$ cp dags/config/config.yaml.sample dags/config/config.yaml
+```
 
 ## 2. Usage
 
