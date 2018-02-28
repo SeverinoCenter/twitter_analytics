@@ -17,30 +17,13 @@ using Airflow running on Docker.
 
 ### 1.1 Required Packages
 
-To successfully get Data Collection started, you need to have the 
-pandas, twitter, and ruamel.yaml python packages. You can install
-them using pip3 as follows:
+Make sure you are in the base directory for the repo and run
 
 ```
-$ pip3 install pandas twitter ruamel.yaml
+$ sudo ./install.sh
 ```
 
-If you don't have pip3 installed, install it using
-
-```
-$ sudo apt-get install python3-pip
-```
-
-You also need Docker and Docker Compose.
-
-Docker can be installed using Apt with the following command:
-
-```
-$ sudo apt install docker.io
-```
-
-Follow the instructions [here](https://docs.docker.com/compose/install/#install-compose)
-to install Compose
+This will install all necessary packages and create the config.yaml in /dags/config/
 
 ### 1.2 Twitter API Access
 
@@ -58,14 +41,7 @@ which will be needed for the next step.
 
 ### 1.3 Setup
 
-To begin using the Twitter collection, you first need to copy the dags/config/config.yaml.sample
-to dags/config/config.yaml using the command
-
-```
-$ cp dags/config/config.yaml.sample dags/config/config.yaml
-```
-
-After you have a private config.yaml file, you need the copy the Twitter API keys into
+You now need to copy the Twitter API keys into
 the config so Twitter can verify.
 
 **MAKE SURE TO NOT PUBLICLY RELAESE THESE KEYS**
