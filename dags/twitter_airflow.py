@@ -1,7 +1,7 @@
 import airflow
 from airflow import DAG
 from airflow.operators.python_operator import PythonOperator
-from datetime import datetime, timedelta, today
+from datetime import datetime, timedelta, date
 import os
 from airflow.models import Variable
 import sys
@@ -12,7 +12,7 @@ import driver as d
 import twitterutils as tu
 
 
-startdate = today()
+startdate = date.today()
 default_args = {
      'owner': 'jason',
      'depends_on_past': False,
