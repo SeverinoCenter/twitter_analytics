@@ -12,3 +12,6 @@ chmod +x /usr/local/bin/docker-compose
 
 # Copy config.yaml.sample to config.yaml and delete the sample
 cp dags/config/config.yaml.sample dags/config/config.yaml && rm dags/config/config.yaml.sample
+
+# Clear out tweets/profiles repo to ensure clean start
+rm dags/tweets/*.json && rm dags/profiles/*.json
