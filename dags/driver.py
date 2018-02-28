@@ -458,6 +458,9 @@ def create_timelines(twitter, cf_dict, all_users):
             time.sleep(cf_dict['sleep_interval'])
             continue
 
+        if(user_info_new[0]['protected'] == True):
+            continue
+
         true_name = user_info_new[0]['screen_name']
 
         # see total tweets
@@ -520,7 +523,7 @@ def main():
     # Get usernames from text file
     all_users = get_all_users_from_file(cf_dict)
 
-    # create_profile_stats(twitter, cf_dict, all_users)
+    create_profile_stats(twitter, cf_dict, all_users)
 
     create_timelines(twitter, cf_dict, all_users)
 

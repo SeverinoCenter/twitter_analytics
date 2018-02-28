@@ -59,7 +59,7 @@ def create_twitter_auth(cf_t):
 
     try:
         # create twitter API object
-        twitter = Twitter(auth=auth)
+        twitter = Twitter(auth=auth, retry=True)
     except TwitterHTTPError:
         traceback.print_exc()
         time.sleep(cf_t['sleep_interval'])
