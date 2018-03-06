@@ -239,24 +239,23 @@ def create_user_stats(config, user):
 
         lpDT = date_file[0:10] # Get the date from the name of the file
         date_file = users_path + "/" + date_file
-        with open(date_file, 'r') as d_file:
 
-            # Traverse over each user profile information
-            for line in d_file:
-                # Get twitter json dump
-                user_info = json.loads(line)
 
-                # Make sure the correct user is being used
-                if(user_info['screen_name'] != user):
-                    continue
-                else:
-                    stats['user_id'] = user_info['id']
-                    # Makes sure to keep the latest date instead of most recently accessed
-                    if( compare_dates(lpDT, stats['date_last_pull']) ):
-                        stats['date_last_pull'] = lpDT
-                    # print(user_info['statuses_count'])
-                    if(user_info['statuses_count'] > stats['tweets_last_pull']):
-                        stats['tweets_last_pull'] = user_info['statuses_count']
+        all_file_info = json.load(open(date_file))
+        
+
+        user_file_info = all_file_info[user]
+        
+        # Set the user ID
+        stats['user_id'] = user_file_info['id']
+
+        # Make sure to keep the latest date instead of most recently accessed
+        if( compare_dates(lpDT, stats['date_last_pull']) ):
+            stats['date_last_pull'] = lpDT
+        
+        # Only update statuses count if it has increased
+        if( user_file_info['statuses_count'] > stats['tweets_last_pull'] ):
+            stats['tweets_last_pull'] = user_file_info['statuses_count']
 
 
     stats_path = config['path'] + '/dags/user_stats.json'
@@ -326,6 +325,8 @@ def create_profile_stats(twitter, cf_dict, all_users):
 
     dt = datetime.datetime.now()
     fn = cf_dict["data_path"] + "/" + dt.strftime('%Y-%m-%d-user-profiles.json')
+
+    all_user_info = {}
     with open(fn, 'w') as f:
         # Create a subquery, looking up information about users listed in 'string'
         # twitter api-docs: https://developer.twitter.com/en/docs/accounts-and-users/follow-search-get-users/api-reference/get-users-lookup
@@ -339,8 +340,9 @@ def create_profile_stats(twitter, cf_dict, all_users):
                     print("User tweets: ", profile['statuses_count'])
 
                     # Save user info
-                    f.write(json.dumps(profile))
-                    f.write("\n")
+                    # f.write(json.dumps(profile))
+                    # f.write("\n")
+                    all_user_info[profile['screen_name']] = profile
 
                     # Get time that the query's took
                     sub_elapsed_time = time.time() - sub_start_time;
@@ -353,6 +355,7 @@ def create_profile_stats(twitter, cf_dict, all_users):
                 print('\n-----------------\n')
                 traceback.print_exc()
                 time.sleep(cf_dict['sleep_interval'])
+        f.write(json.dumps(all_user_info, sort_keys=True, indent=4))
     return fn
 
 def create_timelines(twitter, cf_dict, all_users):
