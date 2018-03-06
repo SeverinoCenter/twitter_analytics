@@ -39,7 +39,6 @@ def config_init(file):
 # RETURNS
 #       all_users: dictionary containing existing users and new users
 def get_all_users_from_file(config):
-    print(config['path'], config['config'], config['file'])
     users_file = open(config['path'] + config['config'] + '/' + config['file'], 'r')
 
     all_users = { 'existing': [],
@@ -165,7 +164,6 @@ def check_for_new_tweets(config, user, twitter):
     # Get information on the user from the stats file
     user_info_file = get_user_stats(config, user)
     # Return the difference between the two
-    # print(user_info_new, "\n ========== \n", user_info_file)
     return user_info_new[0]['statuses_count'] - user_info_file['tweets_last_pull']
 
 ######### compare_dates #########
