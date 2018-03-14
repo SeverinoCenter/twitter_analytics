@@ -109,8 +109,8 @@ def get_profiles(twitter, names, cf_t, string):
     return fn
 
 def timeline_path(screen_name, cf_t):
-    print(cf_t['data_path'].replace("profiles", "tweets/")+screen_name+".json")
-    return cf_t['data_path'].replace("profiles", "tweets/")+screen_name+".json"
+    print(cf_t['timeline_path']+screen_name+".json")
+    return cf_t['timeline_path']+screen_name+".json"
 
 # check the max tweet id in last round
 def timeline_file_stats(screen_name, cf_t):

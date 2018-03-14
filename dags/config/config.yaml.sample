@@ -1,6 +1,6 @@
 file: screen_names.txt  #Filename for list of twitter IDs.
 config: /dags/config  #Spot for the configuration.
-data: /dags/profiles      #Filename for data.
+data: /mnt/data      #Filename for data. Must be absolute path
 consumer_key: ******************************************
 consumer_secret: ******************************************
 access_token: ******************************************

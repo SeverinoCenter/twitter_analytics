@@ -26,7 +26,12 @@ def config_init(file):
     with open(twitter_config, 'r') as yaml_t:
         cf_dict=ruamel.yaml.round_trip_load(yaml_t, preserve_quotes=True)
 
-    return tu.twitter_init(cf_dict)
+    cf_dict['path']          = os.getcwd()
+    cf_dict['names_path']    = cf_dict['path'] + cf_dict['config'] + "/" + cf_dict['file']
+    cf_dict['timeline_path'] = cf_dict['data'] + "/tweets/"
+    cf_dict['profile_path']  = cf_dict['data'] + "/profiles/"
+
+    return cf_dict
 
 
 #########  get_all_users_from_file  #############
@@ -42,7 +47,7 @@ def get_all_users_from_file(config):
     users_file = open(config['path'] + config['config'] + '/' + config['file'], 'r')
 
     all_users = { 'existing': [],
-                  'new': [] }
+                       'new': [] }
 
     for line in users_file:
         username = line.strip()
@@ -65,7 +70,7 @@ def get_all_users_from_file(config):
 #       True: Users exists in database
 #       False: User doesnt exist
 def user_exists(config, name):
-    users_path = config['path'] + '/dags/tweets/';
+    users_path = config['timeline_path']
 
     # Traverse over tweets directory
     for file in os.listdir(users_path):
@@ -114,7 +119,7 @@ def get_user_stats(config, user):
 #       user_info: Dictionary containing the same info that is in the
 #                   user_stats.json file
 def process_existing_tweets(config, user):
-    file_path = config['data_path'].replace('profiles', 'tweets/') + user + '.json'
+    file_path = config['timeline_path'] + user + '.json'
     user_info = {
         "screen_name": user,
         "user_id": 0,
@@ -228,7 +233,7 @@ def create_user_stats(config, user):
     stats['num_tweet_file'] = initial_stats['total_tweets_file']
 
 
-    users_path = config['data_path']
+    users_path = config['profile_path']
     # Traverse over YYYY-MM-DD-user-profiles.json files
     for date_file in os.listdir(users_path):
         # Safety check incase there are non user files in directory
@@ -240,17 +245,17 @@ def create_user_stats(config, user):
 
 
         all_file_info = json.load(open(date_file))
-        
+
 
         user_file_info = all_file_info[user]
-        
+
         # Set the user ID
         stats['user_id'] = user_file_info['id']
 
         # Make sure to keep the latest date instead of most recently accessed
         if( compare_dates(lpDT, stats['date_last_pull']) ):
             stats['date_last_pull'] = lpDT
-        
+
         # Only update statuses count if it has increased
         if( user_file_info['statuses_count'] > stats['tweets_last_pull'] ):
             stats['tweets_last_pull'] = user_file_info['statuses_count']
@@ -322,7 +327,7 @@ def create_profile_stats(twitter, cf_dict, all_users):
 
 
     dt = datetime.datetime.now()
-    fn = cf_dict["data_path"] + "/" + dt.strftime('%Y-%m-%d-user-profiles.json')
+    fn = cf_dict["profile_path"] + dt.strftime('%Y-%m-%d-user-profiles.json')
 
     all_user_info = {}
     with open(fn, 'w') as f:
@@ -423,7 +428,7 @@ def create_timelines(twitter, cf_dict, all_users):
                     temp_max_id = tweets[-1]['id'] - 1
 
             # Add new tweets to file
-            user_file = cf_dict['data_path'].replace('profiles', 'tweets/') + true_name + '.json'
+            user_file = cf_dict['timeline_path'] + true_name + '.json'
 
             # Save the current data in file
             with open(user_file, 'r') as original:
@@ -503,7 +508,7 @@ def create_timelines(twitter, cf_dict, all_users):
                                                     include_rts = True)
 
 
-        user_file = cf_dict['data_path'].replace('profiles', 'tweets/') + true_name + '.json'
+        user_file = cf_dict['timeline_path'] + true_name + '.json'
         write_file = open(user_file, 'a')
         # Loop through each tweet and write it to the file
         for tweet in tweets:
