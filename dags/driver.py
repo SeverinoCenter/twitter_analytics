@@ -358,7 +358,7 @@ def create_profile_stats(twitter, cf_dict, all_users):
                 print('\n-----------------\n')
                 traceback.print_exc()
                 time.sleep(cf_dict['sleep_interval'])
-        f.write(json.dumps(all_user_info, sort_keys=True, indent=4))
+        f.write(json.dumps(all_user_info, sort_keys=True, indent=1))
     return fn
 
 def create_timelines(twitter, cf_dict, all_users):
@@ -388,8 +388,6 @@ def create_timelines(twitter, cf_dict, all_users):
         if(num_new == 0):
             print("    No new tweets detected for", true_name)
             print("    Continuing to next user")
-            create_user_stats(cf_dict, true_name)
-            continue;
 
         # New tweets since last pull
         else:
@@ -435,10 +433,11 @@ def create_timelines(twitter, cf_dict, all_users):
                 data = original.read()
 
             write_file = open(user_file, 'r+')
-            # Loop through each tweet and write it to the file
+            all_tweets = {}
             for tweet in tweets:
-                write_file.write(json.dumps(tweet))
-                write_file.write("\n")
+                all_tweets[tweet['id']] = tweet
+
+            write_file.write(json.dumps(all_tweets, sort_keys=True, indent=1))
 
             write_file.write(data)
             write_file.close()
@@ -511,9 +510,11 @@ def create_timelines(twitter, cf_dict, all_users):
         user_file = cf_dict['timeline_path'] + true_name + '.json'
         write_file = open(user_file, 'a')
         # Loop through each tweet and write it to the file
+        all_tweets = {}
         for tweet in tweets:
-            write_file.write(json.dumps(tweet))
-            write_file.write("\n")
+            all_tweets[tweet['id']] = tweet
+
+        write_file.write(json.dumps(all_tweets, sort_keys=True, indent=1))
 
         write_file.close()
 
