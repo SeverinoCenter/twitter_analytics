@@ -20,14 +20,13 @@ from twitter import *
 #
 # RETURNS
 #        Dictionary containing config info
-def config_init(file):
+def config_init(config_file):
     # Configure config files
-    twitter_config = "dags/config/config.yaml"
-    with open(twitter_config, 'r') as yaml_t:
+    with open(config_file, 'r') as yaml_t:
         cf_dict=ruamel.yaml.round_trip_load(yaml_t, preserve_quotes=True)
 
-    cf_dict['path']          = os.getcwd()
-    cf_dict['names_path']    = cf_dict['path'] + cf_dict['config'] + "/" + cf_dict['file']
+    #cf_dict['path']          = os.getcwd()
+    cf_dict['names_path']    = cf_dict['config'] + "/" + cf_dict['file']
     cf_dict['timeline_path'] = cf_dict['data'] + "/tweets/"
     cf_dict['profile_path']  = cf_dict['data'] + "/profiles/"
 
@@ -44,7 +43,7 @@ def config_init(file):
 # RETURNS
 #       all_users: dictionary containing existing users and new users
 def get_all_users_from_file(config):
-    users_file = open(config['path'] + config['config'] + '/' + config['file'], 'r')
+    users_file = open(config['config'] + '/' + config['file'], 'r')
 
     all_users = { 'existing': [],
                        'new': [] }
@@ -96,7 +95,7 @@ def user_exists(config, name):
 def get_user_stats(config, user):
     # Open the stats file and load the json data for the specific user
 
-    with open(config['path'] + '/dags/user_stats.json', 'r') as stats_file:
+    with open(config['data'] + '/user_stats.json', 'r') as stats_file:
 
         all_info = json.load(stats_file)
         if user in all_info:
@@ -261,7 +260,7 @@ def create_user_stats(config, user):
             stats['tweets_last_pull'] = user_file_info['statuses_count']
 
 
-    stats_path = config['path'] + '/dags/user_stats.json'
+    stats_path = config['data'] + "/user_stats.json"
 
     if(os.path.isfile(stats_path) and os.access(stats_path, os.R_OK)):
         # user_stats.json exists and is readable
@@ -275,7 +274,7 @@ def create_user_stats(config, user):
             file_data = {}
             file_data[user] = stats
 
-    json.dump(file_data, open(config['path'] + '/dags/user_stats.json', 'w'), indent=4)
+    json.dump(file_data, open(config['data'] + '/user_stats.json', 'w'), indent=4)
 
 
     return 0
@@ -524,7 +523,7 @@ def create_timelines(twitter, cf_dict, all_users):
 
 def main():
     # Create Initial config dictionary
-    cf_dict = config_init("config/config.yaml")
+    cf_dict = config_init("dags/config/config.yaml")
     twitter = tu.create_twitter_auth(cf_dict)
 
     # Get usernames from text file
