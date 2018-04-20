@@ -12,7 +12,7 @@ import driver as d
 import twitterutils as tu
 
 
-startdate = date.today()
+startdate = datetime(2018, 4, 1)
 default_args = {
      'owner': 'jason',
      'depends_on_past': False,
@@ -35,7 +35,7 @@ dag_timelines = DAG('twitter_get_timelines', default_args=default_args, schedule
 # John. #Currently this (below) doesn't work because we are using output from task 1 in task 2. Tasks have to be independent.
 
 # # Create config dictionary
-cf_dict = d.config_init("./config.yaml");
+cf_dict = d.config_init("dags/config/config.yaml");
 
 # Authorize twitter
 twitter = tu.create_twitter_auth(cf_dict)
