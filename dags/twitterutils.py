@@ -116,24 +116,23 @@ def timeline_file_stats(screen_name, cf_t):
     stats={}
     #fn = cf_t['data_path']+"/timeline/"+screen_name+".json"
     fn =timeline_path(screen_name, cf_t)
+    print(fn)
     stats['tweet_max_id'] = -1
     stats['tweet_min_id'] = -1
     stats['total_tweets_file']=0
-    if os.path.exists(fn):
-        all_tweets = json.load(open(fn))
+        
+    with open(fn) as json_file:
+        all_tweets = json.load(json_file)
 
-        tweet_ids = all_tweets.keys()
+        for tweet_id, tweet_data in all_tweets.items():
 
-        # Convert the string representation of the IDs to ints
-        int_ids = []
-        for str_id in tweet_ids:
-            int_ids.append(int(str_id))
+            stats['total_tweets_file'] += 1
 
-        stats['tweet_max_id']= max(stats['tweet_max_id'], max(int_ids))
-        if(stats['tweet_min_id'] == -1):
-            stats['tweet_min_id'] = stats['tweet_max_id']
-        stats['tweet_min_id']= min(stats['tweet_min_id'], min(int_ids))
-        stats['total_tweets_file'] = len(tweet_ids)
+            if(stats['tweet_min_id'] == -1):
+                stats['tweet_min_id'] = int(tweet_id)
+
+            stats['tweet_max_id'] = max(stats['tweet_max_id'], int(tweet_id))
+            stats['tweet_min_id'] = min(stats['tweet_min_id'], int(tweet_id))
 
     return stats
 

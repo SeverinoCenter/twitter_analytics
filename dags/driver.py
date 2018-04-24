@@ -129,22 +129,23 @@ def process_existing_tweets(config, user):
         "num_tweet_file": 0
     }
     
-    all_tweet_data = json.loads(file_path)
+    with open(file_path) as json_file:
+        all_tweet_data = json.load(json_file)
         
-    for tweet_id, tweet_data in all_tweet_data:
-        # Increment number of tweets
-        user_info['num_tweet_file'] += 1
-
-        # Find new max_tweet_id and min_tweet_id
-        if(user_info['min_tweet_id'] == -1):
-            user_info['min_tweet_id'] = tweet_id
-
-        user_info['max_tweet_id'] = max(user_info['max_tweet_id'], tweet_id)
-        user_info['min_tweet_id'] = min(user_info['min_tweet_id'], tweet_id)
-
-        # Set user_id
-        user_info['user_id'] = tweet_data['user']['id']
-        user_info['tweets_last_pull'] = tweet_data['user']['statuses_count']
+        for tweet_id, tweet_data in all_tweet_data.items():
+            # Increment number of tweets
+            user_info['num_tweet_file'] += 1
+    
+            # Find new max_tweet_id and min_tweet_id
+            if(user_info['min_tweet_id'] == -1):
+                user_info['min_tweet_id'] = int(tweet_id)
+    
+            user_info['max_tweet_id'] = max(user_info['max_tweet_id'], int(tweet_id))
+            user_info['min_tweet_id'] = min(user_info['min_tweet_id'], int(tweet_id))
+    
+            # Set user_id
+            user_info['user_id'] = tweet_data['user']['id']
+            user_info['tweets_last_pull'] = tweet_data['user']['statuses_count']
 
     return user_info
 
@@ -381,50 +382,52 @@ def create_timelines(twitter, cf_dict, all_users):
         # Find number of new tweets
         num_new = check_for_new_tweets(cf_dict, true_name, twitter)
 
+        tweets_found = True
+
 
 
         # No new tweets since last info pull
         # num_new = 0
         if(num_new == 0):
             print("    No new tweets detected for", true_name)
-            print("    Continuing to next user")
+            tweets_found = False
 
         # New tweets since last pull
-        else:
+        elif(num_new < 200):
             print(num_new, "new tweets detected for", true_name)
             user_max_id = get_user_stats(cf_dict, true_name)['max_tweet_id']
 
-            if(num_new < 200):
-                print("    Pulling newest tweets")
+            print("    Pulling newest tweets")
 
-                # Pull new tweets in one go and add to file
-                tweets = twitter.statuses.user_timeline(screen_name = true_name,
-                                                           since_id = user_max_id,
-                                                        include_rts = True)
+            # Pull new tweets in one go and add to file
+            tweets = twitter.statuses.user_timeline(screen_name = true_name,
+                                                       since_id = user_max_id,
+                                                    include_rts = True)
 
-            else:
-                print("    Paging through new tweets")
-                # Page through new tweets and add to file
+        else:
+            print("    Paging through new tweets")
+            # Page through new tweets and add to file
 
-                # Get the first page to create a max_id Number
-                tweets = twitter.statuses.user_timeline(screen_name = true_name,
-                                                           since_id = user_max_id,
-                                                              count = 200,
-                                                        include_rts = True)
+            # Get the first page to create a max_id Number
+            tweets = twitter.statuses.user_timeline(screen_name = true_name,
+                                                       since_id = user_max_id,
+                                                          count = 200,
+                                                    include_rts = True)
 
-                temp_max_id = tweets[-1]['id']
-                num_pulled = len(tweets)
-                while num_pulled != 0:
-                    temp_len = len(tweets)
-                    tweets += twitter.statuses.user_timeline(screen_name = true_name,
-                                                                since_id = user_max_id,
-                                                                   count = 200,
-                                                                  max_id = temp_max_id,
-                                                             include_rts = True)
-                    # Get the number of tweets pulled to get the last ID
-                    num_pulled = len(tweets) - temp_len;
-                    temp_max_id = tweets[-1]['id'] - 1
+            temp_max_id = tweets[-1]['id']
+            num_pulled = len(tweets)
+            while num_pulled != 0:
+                temp_len = len(tweets)
+                tweets += twitter.statuses.user_timeline(screen_name = true_name,
+                                                            since_id = user_max_id,
+                                                               count = 200,
+                                                              max_id = temp_max_id,
+                                                         include_rts = True)
+                # Get the number of tweets pulled to get the last ID
+                num_pulled = len(tweets) - temp_len;
+                temp_max_id = tweets[-1]['id'] - 1
 
+        if(tweets_found):
             # Add new tweets to file
             user_file = cf_dict['timeline_path'] + true_name + '.json'
 
@@ -446,8 +449,8 @@ def create_timelines(twitter, cf_dict, all_users):
 
 
 
-        # Update user_stats with relevant information
-        create_user_stats(cf_dict, true_name)
+            # Update user_stats with relevant information
+            create_user_stats(cf_dict, true_name)
 
     #### NEW USER PROCESS ####
     for user in all_users['new']:
@@ -512,7 +515,7 @@ def create_timelines(twitter, cf_dict, all_users):
 
         if(tweets_found):
             user_file = cf_dict['timeline_path'] + true_name + '.json'
-            write_file = open(user_file, 'a')
+            write_file = open(user_file, 'w')
             # Loop through each tweet and write it to the file
             all_tweets = {}
             for tweet in tweets:
@@ -534,7 +537,7 @@ def main():
     # Get usernames from text file
     all_users = get_all_users_from_file(cf_dict)
 
-    create_profile_stats(twitter, cf_dict, all_users)
+    # create_profile_stats(twitter, cf_dict, all_users)
 
     create_timelines(twitter, cf_dict, all_users)
 
