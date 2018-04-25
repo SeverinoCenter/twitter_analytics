@@ -432,22 +432,20 @@ def create_timelines(twitter, cf_dict, all_users):
             user_file = cf_dict['timeline_path'] + true_name + '.json'
 
             # Save the current data in file
-            with open(user_file, 'r') as original:
-                data = original.read()
+            with open(user_file) as original:
+                data = json.load(original)
 
             write_file = open(user_file, 'r+')
-            all_tweets = {}
+            all_tweets = data
             for tweet in tweets:
-                all_tweets[tweet['id']] = tweet
+                all_tweets[tweet['id_str']] = tweet
+
 
             write_file.write(json.dumps(all_tweets, sort_keys=True, indent=1))
 
-            write_file.write(data)
             write_file.close()
 
             print("    Pulled", len(tweets), "new tweets for user", true_name)
-
-
 
             # Update user_stats with relevant information
             create_user_stats(cf_dict, true_name)
@@ -467,6 +465,7 @@ def create_timelines(twitter, cf_dict, all_users):
             continue
 
         if(user_info_new[0]['protected'] == True):
+            print("Private account....can't access")
             continue
 
         true_name = user_info_new[0]['screen_name']
@@ -519,7 +518,7 @@ def create_timelines(twitter, cf_dict, all_users):
             # Loop through each tweet and write it to the file
             all_tweets = {}
             for tweet in tweets:
-                all_tweets[tweet['id']] = tweet
+                all_tweets[tweet['id_str']] = tweet
 
             write_file.write(json.dumps(all_tweets, sort_keys=True, indent=1))
 
@@ -537,7 +536,7 @@ def main():
     # Get usernames from text file
     all_users = get_all_users_from_file(cf_dict)
 
-    # create_profile_stats(twitter, cf_dict, all_users)
+    create_profile_stats(twitter, cf_dict, all_users)
 
     create_timelines(twitter, cf_dict, all_users)
 
