@@ -43,7 +43,7 @@ def config_init(config_file):
 # RETURNS
 #       all_users: dictionary containing existing users and new users
 def get_all_users_from_file(config):
-    users_file = open(config['config'] + '/' + config['file'], 'r')
+    users_file = open(os.path.join('config','screen_names.txt'))
 
     all_users = { 'existing': [],
                        'new': [] }
@@ -128,21 +128,21 @@ def process_existing_tweets(config, user):
         "min_tweet_id": -1,
         "num_tweet_file": 0
     }
-    
+
     with open(file_path) as json_file:
         all_tweet_data = json.load(json_file)
-        
+
         for tweet_id, tweet_data in all_tweet_data.items():
             # Increment number of tweets
             user_info['num_tweet_file'] += 1
-    
+
             # Find new max_tweet_id and min_tweet_id
             if(user_info['min_tweet_id'] == -1):
                 user_info['min_tweet_id'] = int(tweet_id)
-    
+
             user_info['max_tweet_id'] = max(user_info['max_tweet_id'], int(tweet_id))
             user_info['min_tweet_id'] = min(user_info['min_tweet_id'], int(tweet_id))
-    
+
             # Set user_id
             user_info['user_id'] = tweet_data['user']['id']
             user_info['tweets_last_pull'] = tweet_data['user']['statuses_count']
