@@ -48,40 +48,4 @@ the config so Twitter can verify.
 
 The config.yaml is listed in the .gitignore to prevent this.
 
-## 2. Usage
 
-Config setup, runtime commands
-
-### 2.1 Azure Ubuntu Server
-
-To setup an Ubuntu server on Azure to use, you first need the Azure CLI.
-
-You can install the Azure CLI for your OS by going [here](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest).
-
-Log in to your Azure account by running 
-```
-$ az login
-```
-and following the instructions.
-
-
-From here, you can run 
-```
-az vm create -n VmName -g ResourceGroup --image UbuntuLTS --authentication-type password --admin-username User --admin-password Pass
-```
-
-This will create a Azure VM named 'VmName' under the 'ResourceGroup' group running the latest Ubuntu version. If you wish to use SSH
-authentication instead of password, remove `--authentication-type password --admin-username User --admin-password Pass` from the
-command.
-
-To allow Docker to run, we need to open port 8080 on the VM. We can do this by running the following command:
-```
-az vm open-port -n VmName -g ResourceGroup -port 8080
-```
-
-From here you can access the server and setup the project as instructed in section 1.
-
-
-## 3. Support
-
-Submit an issue [here](https://github.com/Kuberlytics/twitter_analytics/issues/new)
