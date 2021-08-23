@@ -1,4 +1,4 @@
 twitter==1.18.0
 jupyter==1.0.0
-jupyterlab==0.30.6
+jupyterlab==1.2.21
 ruamel.yaml==0.15.35
